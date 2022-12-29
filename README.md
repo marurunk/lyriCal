@@ -5,7 +5,13 @@
 ## Installation
 1. install python3 in your Windows.
 
-2. install colorama:
+2. install pyglet:
+
+```python 
+    pip install pyglet
+```
+
+3. install colorama:
 
 ```python 
     pip install colorama

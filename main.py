@@ -8,19 +8,24 @@ from tkinter import filedialog
 from src.colors import *
 
 
-# OPENING A SRT FILE
-file_path = filedialog.askopenfilename()
-file_url = urllib.parse.urljoin("file:", urllib.request.pathname2url(os.path.abspath(file_path)))
-file_url = urllib.parse.unquote(file_url)
-
-print(file_url)
-timeliner.srt_path = file_url
-
 # OPENING A MUSIC FILE COMPATIBLE WITH pygame.mixer
-file_path = filedialog.askopenfilename()
+cGREEN()
+print("Please select a music file (mp3)")
+cRED()
+file_path = filedialog.askopenfilename(filetypes=[("MP3 Files", "*.mp3"), ("FLAC", "*.flac"), ("WAVE", "*.wav"), ("M4A", "*.m4a")])
 music_url = urllib.parse.urljoin("file:", urllib.request.pathname2url(os.path.abspath(file_path)))
 music_url = urllib.parse.unquote(music_url)
 music.load_music(music_url.replace("file:///", ""))
+
+# OPENING A SRT FILE
+cGREEN()
+print("Please select a SRT file (subtitles file)")
+cRED()
+file_path = filedialog.askopenfilename(filetypes=[("SRT files", "*.srt")])
+file_url = urllib.parse.urljoin("file:", urllib.request.pathname2url(os.path.abspath(file_path)))
+file_url = urllib.parse.unquote(file_url)
+
+timeliner.srt_path = file_url
 
 
 subtitle_window = subtitlePopup.SubtitleWindow()
@@ -31,9 +36,9 @@ def init_subtitle_window():
     subtitle_window.mainloop()
 
 def exit():
-    cRED()
+    cBLUE()
     print("PROGRAM CLOSED")
-    cWHITE()
+    cRED()
     
 def init():
     init_subtitle_window()  

@@ -29,7 +29,6 @@ def get_times(file:str):
   return re.findall(patron_times, read(file))
 
 def create_dict(file:str):
-  print(get_subs(file))
   dict = {
     "subtitles": get_subs(file),
     "times": []

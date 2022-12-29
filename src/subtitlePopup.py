@@ -23,52 +23,56 @@ def set_appwindow(main_window):
 MIN_WIDTH = 200
 MIN_HEIGHT = 60
 
+BG_OPACITY = 0.5
+
+TRANSPARENT_COLOR = "#111"
+
+BG_COLOR = "#000"
+
 class SubtitleWindow(Tk):
     def __init__(self):
         super().__init__()
-        # Agregue aquí el código para inicializar la ventana de Tkinter
-        self.overrideredirect(True)
-        self.geometry(f"{MIN_WIDTH}x{MIN_HEIGHT}")
-        self.wm_attributes("-transparentcolor", "#111")
-        self.wm_attributes("-toolwindow", True)
-        self.config(bg="#111")
-
+        
         ROBOTO_FONT = Font(family="data/Roboto-Bold.ttf", size=20)
 
-        self.label_subtitle = Label(self, text="", bg="#111", fg="white", bd=0, padx=20, pady=6)
+
+        self.overrideredirect(True)
+        self.geometry(f"{MIN_WIDTH}x{MIN_HEIGHT}")
+        self.wm_attributes("-transparentcolor", TRANSPARENT_COLOR)
+        self.wm_attributes("-toolwindow", True)
+        self.wm_attributes("-topmost", True)
+        self.config(bg=TRANSPARENT_COLOR)
+
+        self.label_subtitle = Label(self, text="", bg=TRANSPARENT_COLOR, fg="white", bd=0, padx=20, pady=6)
         self.label_subtitle.pack(fill=BOTH, expand=TRUE)
         self.label_subtitle.config(font=ROBOTO_FONT)
-        
-        
         
         self.background_window = Toplevel()
         self.background_window.overrideredirect(True)
         self.background_window.geometry(f"{MIN_WIDTH}x{MIN_HEIGHT}")
-        self.background_window.config(bg="black")
-        self.background_window.wm_attributes("-alpha", 0.3)
-        
-        self.wm_attributes("-topmost", True)
+        self.background_window.config(bg=BG_COLOR)
+        self.background_window.wm_attributes("-alpha", BG_OPACITY)
         self.background_window.wm_attributes("-topmost", True)
+        
         
         self.bind("<ButtonPress-1>", self.on_press)
         self.bind("<ButtonRelease-1>", self.on_release)
         self.bind("<Motion>", self.on_motion)
+        self.bind("<FocusIn>", self.on_focus_in)
+        self.bind("<Activate>", self.on_focus_in)
+        
         self.background_window.bind("<ButtonPress-1>", self.on_press)
         self.background_window.bind("<ButtonRelease-1>", self.on_release)
         self.background_window.bind("<Motion>", self.on_motion)
-        self.bind("<FocusIn>", self.on_focus_in)
-        self.bind("<Activate>", self.on_focus_in)
+        
+        self.background_window.protocol("WM_DELETE_WINDOW", self.destroy_both)
+        
         self.update()
         self.lift()
         self.after(10, set_appwindow, self)
-
-
-        self.background_window.protocol("WM_DELETE_WINDOW", self.destroy_both)
-        
-        self.old_x, self.old_y = None, None
-        
         
         #LOGIC
+        self.old_x, self.old_y = None, None
         
         timeliner.start(self)  
         
