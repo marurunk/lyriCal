@@ -1,18 +1,26 @@
 import threading
 import pyglet
-
-song = None
+import time
 
 def load_music(url):
-    global song
-    song = pyglet.media.load(url)
-    
-    
-def play_music():
-    song.play()
-    pyglet.app.run()
+    global Player, song
 
-musicT = threading.Thread(target=play_music)
+    Player = pyglet.media.Player()
+    song = pyglet.media.load(url, streaming=False)
+    Player.queue(song)
+    Player.loop = True
+   
+def get_playback_time()-> float:
+    return Player.time # TIME IN SECONDS | FLOAT
+ 
+def play_music():
+    Player.play()
+ 
+def exit():
+    Player.pause()
+    Player.delete()
+    
+music_Thread = threading.Thread(target=play_music)
 
 def start():
-    musicT.start()
+    music_Thread.start()

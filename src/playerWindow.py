@@ -1,59 +1,73 @@
 from tkinter.font import Font
-import src.timeliner as timeliner
-import src.music as music
+import music as music
 from tkinter import *
 from ctypes import windll
+import tkinter.ttk as ttk
 
 
 
-# GWL_EXSTYLE = -20
-# WS_EX_APPWINDOW = 0x00040000
-# WS_EX_TOOLWINDOW = 0x00000080
+GWL_EXSTYLE = -20
+WS_EX_APPWINDOW = 0x00040000
+WS_EX_TOOLWINDOW = 0x00000080
 
-# def set_appwindow(main_window):
-#     hwnd = windll.user32.GetParent(main_window.winfo_id())
-#     style = windll.user32.GetWindowLongPtrW(hwnd, GWL_EXSTYLE)
-#     style = style & ~WS_EX_TOOLWINDOW
-#     style = style | WS_EX_APPWINDOW
-#     res = windll.user32.SetWindowLongPtrW(hwnd, GWL_EXSTYLE, style)
-#     # re-assert the new window style
-#     main_window.withdraw()
-#     main_window.after(10, main_window.deiconify)
+def set_appwindow(main_window):
+    hwnd = windll.user32.GetParent(main_window.winfo_id())
+    style = windll.user32.GetWindowLongPtrW(hwnd, GWL_EXSTYLE)
+    style = style & ~WS_EX_TOOLWINDOW
+    style = style | WS_EX_APPWINDOW
+    res = windll.user32.SetWindowLongPtrW(hwnd, GWL_EXSTYLE, style)
+    # re-assert the new window style
+    main_window.withdraw()
+    main_window.after(10, main_window.deiconify)
 
 MIN_WIDTH = 200
-MIN_HEIGHT = 60
+MIN_HEIGHT = 300
 
-BG_OPACITY = 0.5
+BG_OPACITY = 0.9
 
 TRANSPARENT_COLOR = "#111"
 
-BG_COLOR = "#000"
+BG_COLOR = "#fff"
 
-class SubtitleWindow(Tk):
+class MusicPlayerWindow(Tk):
     def __init__(self):
         super().__init__()
         
         ROBOTO_FONT = Font(family="data/Roboto-Bold.ttf", size=20)
 
 
-        self.overrideredirect(True)
+        self.overrideredirect(False)
         self.geometry(f"{MIN_WIDTH}x{MIN_HEIGHT}")
         self.wm_attributes("-transparentcolor", TRANSPARENT_COLOR)
         self.wm_attributes("-toolwindow", True)
-        self.wm_attributes("-topmost", True)
+        self.wm_attributes("-topmost", False)
         self.config(bg=TRANSPARENT_COLOR)
-
-        self.label_subtitle = Label(self, text="", bg=TRANSPARENT_COLOR, fg="white", bd=0, padx=20, pady=6)
-        self.label_subtitle.pack(fill=BOTH, expand=TRUE)
-        self.label_subtitle.config(font=ROBOTO_FONT)
         
         self.background_window = Toplevel()
-        self.background_window.overrideredirect(True)
+        self.background_window.overrideredirect(False)
         self.background_window.geometry(f"{MIN_WIDTH}x{MIN_HEIGHT}")
         self.background_window.config(bg=BG_COLOR)
         self.background_window.wm_attributes("-alpha", BG_OPACITY)
-        self.background_window.wm_attributes("-topmost", True)
+        self.background_window.wm_attributes("-topmost", False)
         
+        self.frame = ttk.Frame(self)
+
+        # self.frame.configure()
+        self.frame.pack()
+        button_STYLE = ttk.Style()
+        ttk.Style().configure("TButton", foreground="blue",font=("data/Roboto-Bold.ttf", 10, "bold"))
+
+        self.label_title = Label(self.frame, text="MusicPlayer", bg=TRANSPARENT_COLOR, fg="black", bd=0, padx=20, pady=6)
+        self.label_title.pack(fill=BOTH, expand=TRUE)
+        self.label_title.config(font=ROBOTO_FONT)
+        
+        self.button_pause = ttk.Button(self.frame, text="Pause")
+        self.button_pause.pack(side="bottom", expand=TRUE)
+        
+        self.background_window.bind("<ButtonPress-1>", self.on_press)
+        self.background_window.bind("<ButtonRelease-1>", self.on_release)
+        self.background_window.bind("<Motion>", self.on_motion)
+        self.background_window.protocol("WM_DELETE_WINDOW", self.destroy_both)
         
         self.bind("<ButtonPress-1>", self.on_press)
         self.bind("<ButtonRelease-1>", self.on_release)
@@ -61,23 +75,17 @@ class SubtitleWindow(Tk):
         self.bind("<FocusIn>", self.on_focus_in)
         self.bind("<Activate>", self.on_focus_in)
         self.bind("<k>", self.pause)
-        
-        self.background_window.bind("<ButtonPress-1>", self.on_press)
-        self.background_window.bind("<ButtonRelease-1>", self.on_release)
-        self.background_window.bind("<Motion>", self.on_motion)
-        
-        self.background_window.protocol("WM_DELETE_WINDOW", self.destroy_both)
-        
+        self.move_center()
         self.update()
         self.lift()
-        # self.after(10, set_appwindow, self)
+        self.after(10, set_appwindow, self)
         
         #LOGIC
         self.old_x, self.old_y = None, None
         
 
     def destroy_both(self):
-        self.background_window.after(0, self.background_window.destroy)
+        self.background_window.destroy()
         self.destroy()
     
     def on_press(self, event):
@@ -100,8 +108,6 @@ class SubtitleWindow(Tk):
             self.old_center_y = self.winfo_y() + (self.winfo_height()/2)
             
             self.lift()
-            self.focus_force()
-            
 
     def on_focus_in(self, event):
         self.background_window.lift()
@@ -132,8 +138,8 @@ class SubtitleWindow(Tk):
 
 
     def set_txt(self, txt):
-        self.label_subtitle.config(text=txt)
-        if self.label_subtitle["text"] != "":
+        self.label_title.config(text=txt)
+        if self.label_title["text"] != "":
             self.update_geometry()       
         
     def pause(self, event):
@@ -146,7 +152,12 @@ class SubtitleWindow(Tk):
         self.old_center_x = self.winfo_x() + (self.winfo_width()/2)
         self.old_center_y = self.winfo_y() + (self.winfo_height()/2)
 
-        self.geometry(f"{self.label_subtitle.winfo_reqwidth()}x{self.winfo_reqheight()}")
-        self.background_window.geometry(f"{self.label_subtitle.winfo_reqwidth()}x{self.winfo_reqheight()}")
+        self.geometry(f"{self.label_title.winfo_reqwidth()}x{self.winfo_reqheight()}")
+        self.background_window.geometry(f"{self.label_title.winfo_reqwidth()}x{self.winfo_reqheight()}")
 
         self.fix_position()
+        
+def init():
+    window = MusicPlayerWindow()
+    window.mainloop()
+# init()
