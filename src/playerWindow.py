@@ -1,5 +1,5 @@
 from tkinter.font import Font
-import music as music
+# import music as music
 from tkinter import *
 from ctypes import windll
 import tkinter.ttk as ttk
@@ -56,7 +56,9 @@ class MusicPlayerWindow(Tk):
         self.frame.pack(expand=True,fill="both", padx=10,pady=10)
 
 
-        ttk.Style().configure("TButton", foreground="blue",font=("data/Roboto-Bold.ttf", 9, "bold"))
+        ttk.Style().configure("TButton", foreground="blue",font=("data/Roboto-Bold.ttf", 9, "bold"), background=TRANSPARENT_COLOR)
+        ttk.Style().configure("TFrame", foreground="blue", background=TRANSPARENT_COLOR)
+        ttk.Style().configure("TLabel", foreground="blue", background=TRANSPARENT_COLOR)
 
         self.label_title = ttk.Label(self.frame, text="MusicPlayer")
         self.label_title.config(font=ROBOTO_FONT)
@@ -149,11 +151,11 @@ class MusicPlayerWindow(Tk):
             self.update_geometry()       
         
     def pause(self, event):
-        if music.Player.playing:
-            music.Player.pause()
-        else:
-            music.Player.play()
-    
+        # if music.Player.playing:
+        #     music.Player.pause()
+        # else:
+        #     music.Player.play()
+        pass  
     def update_geometry(self):
         self.old_center_x = self.winfo_x() + (self.winfo_width()/2)
         self.old_center_y = self.winfo_y() + (self.winfo_height()/2)
@@ -163,6 +165,4 @@ class MusicPlayerWindow(Tk):
 
         self.fix_position()
         
-def init():
-    window = MusicPlayerWindow()
-init()
+window = MusicPlayerWindow()

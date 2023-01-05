@@ -4,7 +4,6 @@ from src import subtitlePopup
 from src import music
 from src.colors import *
 
-thread_list = []
 subtitle_window = subtitlePopup.SubtitleWindow()
 
 def init_subtitle_window():
