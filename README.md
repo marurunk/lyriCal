@@ -1,4 +1,4 @@
-# py-musicPlayer by @marurunk
+# LyriCal MusicPlayer by [@marurunk](https://github.com/marurunk)
 ### A music player for karaoke (Windows)
 
 ## Run instruction
@@ -25,8 +25,7 @@
 ```
 
 ## To do list:
-- Main window
-- buttons
+- Main User Interface
 - Music player logic
 - Playlist Manager
 - Subtitle Aspect configuration window
