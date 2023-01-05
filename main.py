@@ -11,8 +11,6 @@ def init_subtitle_window():
     subtitle_window.protocol("WM_DELETE_WINDOW", exit)
     timeliner.start(subtitle_window)
 
-    #thread_list.append(music.music_Thread)
-    thread_list.append(timeliner.timeLine_thread)
     subtitle_window.mainloop()
     exit()
 

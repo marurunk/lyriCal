@@ -20,7 +20,7 @@ def set_appwindow(main_window):
     main_window.withdraw()
     main_window.after(10, main_window.deiconify)
 
-MIN_WIDTH = 200
+MIN_WIDTH = 300
 MIN_HEIGHT = 300
 
 BG_OPACITY = 0.9
@@ -36,7 +36,7 @@ class MusicPlayerWindow(Tk):
         ROBOTO_FONT = Font(family="data/Roboto-Bold.ttf", size=20)
 
 
-        self.overrideredirect(False)
+        self.overrideredirect(True)
         self.geometry(f"{MIN_WIDTH}x{MIN_HEIGHT}")
         self.wm_attributes("-transparentcolor", TRANSPARENT_COLOR)
         self.wm_attributes("-toolwindow", True)
@@ -44,7 +44,7 @@ class MusicPlayerWindow(Tk):
         self.config(bg=TRANSPARENT_COLOR)
         
         self.background_window = Toplevel()
-        self.background_window.overrideredirect(False)
+        self.background_window.overrideredirect(True)
         self.background_window.geometry(f"{MIN_WIDTH}x{MIN_HEIGHT}")
         self.background_window.config(bg=BG_COLOR)
         self.background_window.wm_attributes("-alpha", BG_OPACITY)
@@ -79,6 +79,7 @@ class MusicPlayerWindow(Tk):
         self.background_window.bind("<ButtonRelease-1>", self.on_release)
         self.background_window.bind("<Motion>", self.on_motion)
         self.background_window.protocol("WM_DELETE_WINDOW", self.destroy_both)
+        self.protocol("WM_DELETE_WINDOW", self.destroy_both)
         
         self.bind("<ButtonPress-1>", self.on_press)
         self.bind("<ButtonRelease-1>", self.on_release)
@@ -144,13 +145,7 @@ class MusicPlayerWindow(Tk):
         self.geometry(f"+{int(self.old_center_x-(self.winfo_width())/2)}+{int(self.old_center_y-(self.winfo_height()/2))}")
         self.background_window.geometry(f"+{int(self.old_center_x-(self.winfo_width()/2))}+{int(self.old_center_y-(self.winfo_height()/2))}")
         
-
-
-    def set_txt(self, txt):
-        self.label_title.config(text=txt)
-        if self.label_title["text"] != "":
-            self.update_geometry()       
-        
+   
     def pause(self, event):
         # if music.Player.playing:
         #     music.Player.pause()
