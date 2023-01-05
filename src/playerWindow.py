@@ -53,17 +53,25 @@ class MusicPlayerWindow(Tk):
         self.frame = ttk.Frame(self)
 
         # self.frame.configure()
-        self.frame.pack()
-        button_STYLE = ttk.Style()
-        ttk.Style().configure("TButton", foreground="blue",font=("data/Roboto-Bold.ttf", 10, "bold"))
+        self.frame.pack(expand=True,fill="both", padx=10,pady=10)
 
-        self.label_title = Label(self.frame, text="MusicPlayer", bg=TRANSPARENT_COLOR, fg="black", bd=0, padx=20, pady=6)
-        self.label_title.pack(fill=BOTH, expand=TRUE)
+
+        ttk.Style().configure("TButton", foreground="blue",font=("data/Roboto-Bold.ttf", 9, "bold"))
+
+        self.label_title = ttk.Label(self.frame, text="MusicPlayer")
         self.label_title.config(font=ROBOTO_FONT)
         
-        self.button_pause = ttk.Button(self.frame, text="Pause")
-        self.button_pause.pack(side="bottom", expand=TRUE)
-        
+        self.label_title.grid(column=0,row=0,columnspan=3,sticky="nsew")
+
+        self.button_load= ttk.Button(self.frame, text="Load",width=10)
+        self.button_load.grid(row=1,column=0)
+
+        self.button_pause = ttk.Button(self.frame, text="Pause",width=10)
+        self.button_pause.grid(row=1,column=1)
+
+        self.button_next = ttk.Button(self.frame, text="Next",width=10)
+        self.button_next.grid(row=1,column=2)
+
         self.background_window.bind("<ButtonPress-1>", self.on_press)
         self.background_window.bind("<ButtonRelease-1>", self.on_release)
         self.background_window.bind("<Motion>", self.on_motion)
@@ -75,10 +83,8 @@ class MusicPlayerWindow(Tk):
         self.bind("<FocusIn>", self.on_focus_in)
         self.bind("<Activate>", self.on_focus_in)
         self.bind("<k>", self.pause)
-        self.move_center()
-        self.update()
-        self.lift()
         self.after(10, set_appwindow, self)
+        self.mainloop()
         
         #LOGIC
         self.old_x, self.old_y = None, None
@@ -87,7 +93,7 @@ class MusicPlayerWindow(Tk):
     def destroy_both(self):
         self.background_window.destroy()
         self.destroy()
-    
+
     def on_press(self, event):
         # obtener la posición del mouse al presionar el botón izquierdo
         self.old_x, self.old_y = event.x, event.y
@@ -159,5 +165,4 @@ class MusicPlayerWindow(Tk):
         
 def init():
     window = MusicPlayerWindow()
-    window.mainloop()
-# init()
+init()

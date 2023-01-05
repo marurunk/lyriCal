@@ -1,3 +1,4 @@
+from datetime import timedelta
 import re
 
 musicURL = "myMusic.srt"
@@ -9,7 +10,6 @@ def read(file:str):
   with open(file.replace("file:///",""), "r", encoding="utf-8") as f:
       return f.read()
     
-
 def get_subs(file:str):
     # Obtener dialogos
     subs = re.findall(patron_txt, read(file))
@@ -21,9 +21,6 @@ def get_subs(file:str):
     
     return subs
 
-
-
-
 def get_times(file:str):
   # Obtener tiemposd (start, end)
   return re.findall(patron_times, read(file))
@@ -34,8 +31,13 @@ def create_dict(file:str):
     "times": []
   }
 
-  for resultado in get_times(file):
-      start, end = resultado
+  for time in get_times(file):
+      start, end = time
+      # parse text to seconds
+      start = timedelta(hours=int(start[:2]), minutes=int(start[3:5]), seconds=int(start[6:8]), milliseconds=int(start[9:])).total_seconds()
+      end = timedelta(hours=int(end[:2]), minutes=int(end[3:5]), seconds=int(end[6:8]), milliseconds=int(end[9:])).total_seconds()
+
+      
       dict["times"].append({"start":start, "end": end})
   return dict
       

@@ -5,21 +5,6 @@ from tkinter import *
 from ctypes import windll
 
 
-
-# GWL_EXSTYLE = -20
-# WS_EX_APPWINDOW = 0x00040000
-# WS_EX_TOOLWINDOW = 0x00000080
-
-# def set_appwindow(main_window):
-#     hwnd = windll.user32.GetParent(main_window.winfo_id())
-#     style = windll.user32.GetWindowLongPtrW(hwnd, GWL_EXSTYLE)
-#     style = style & ~WS_EX_TOOLWINDOW
-#     style = style | WS_EX_APPWINDOW
-#     res = windll.user32.SetWindowLongPtrW(hwnd, GWL_EXSTYLE, style)
-#     # re-assert the new window style
-#     main_window.withdraw()
-#     main_window.after(10, main_window.deiconify)
-
 MIN_WIDTH = 200
 MIN_HEIGHT = 60
 
@@ -137,16 +122,17 @@ class SubtitleWindow(Tk):
             self.update_geometry()       
         
     def pause(self, event):
-        if music.Player.playing:
-            music.Player.pause()
-        else:
-            music.Player.play()
-    
+        #if music.Player.playing:
+        #    music.Player.pause()
+        #else:
+        #    music.Player.play()
+        music.reproductor.pause()
+
     def update_geometry(self):
         self.old_center_x = self.winfo_x() + (self.winfo_width()/2)
         self.old_center_y = self.winfo_y() + (self.winfo_height()/2)
 
-        self.geometry(f"{self.label_subtitle.winfo_reqwidth()}x{self.winfo_reqheight()}")
-        self.background_window.geometry(f"{self.label_subtitle.winfo_reqwidth()}x{self.winfo_reqheight()}")
+        self.geometry(f"{self.label_subtitle.winfo_reqwidth()}x{self.label_subtitle.winfo_reqheight()}")
+        self.background_window.geometry(f"{self.label_subtitle.winfo_reqwidth()}x{self.label_subtitle.winfo_reqheight()}")
 
         self.fix_position()
