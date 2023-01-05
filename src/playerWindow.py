@@ -55,6 +55,7 @@ class MusicPlayerWindow(Tk):
         # self.frame.configure()
         self.frame.pack(expand=True,fill="both", padx=10,pady=10)
 
+        self.old_x, self.old_y = None, None
 
         ttk.Style().configure("TButton", foreground="blue",font=("data/Roboto-Bold.ttf", 9, "bold"), background=TRANSPARENT_COLOR)
         ttk.Style().configure("TFrame", foreground="blue", background=TRANSPARENT_COLOR)
@@ -86,10 +87,10 @@ class MusicPlayerWindow(Tk):
         self.bind("<Activate>", self.on_focus_in)
         self.bind("<k>", self.pause)
         self.after(10, set_appwindow, self)
+        self.move_center()
         self.mainloop()
         
         #LOGIC
-        self.old_x, self.old_y = None, None
         
 
     def destroy_both(self):
@@ -156,13 +157,5 @@ class MusicPlayerWindow(Tk):
         # else:
         #     music.Player.play()
         pass  
-    def update_geometry(self):
-        self.old_center_x = self.winfo_x() + (self.winfo_width()/2)
-        self.old_center_y = self.winfo_y() + (self.winfo_height()/2)
-
-        self.geometry(f"{self.label_title.winfo_reqwidth()}x{self.winfo_reqheight()}")
-        self.background_window.geometry(f"{self.label_title.winfo_reqwidth()}x{self.winfo_reqheight()}")
-
-        self.fix_position()
         
 window = MusicPlayerWindow()
