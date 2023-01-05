@@ -3,13 +3,10 @@ import os
 import urllib.parse
 import urllib.request
 from tkinter import filedialog
-from src import timeliner
 from src.colors import *
 
 music_formats = [("MP3 Files", "*.mp3"), ("FLAC", "*.flac"), ("WAVE", "*.wav"), ("M4A", "*.m4a")]
 subtitle_formats = [("SRT files", "*.srt")]
-
-
 
 class MusicPlayer:
     player = pyglet.media.Player()
@@ -19,6 +16,9 @@ class MusicPlayer:
     data_current = None
     data_next = None
     data_previous = None
+    
+    def __init__(self):
+        self.player.on_eos = self.on_end_song
     
     def play(self):
         self.player.play()
@@ -32,14 +32,12 @@ class MusicPlayer:
             self.player.play()
     
     def add_music_list(self, list:list):
-        print("lista :", list)
         for url in list:
             self.playlist.append(url)
         self.load()
         self.player.queue(self.data_current)
     
     def load(self):
-        print("load")
         if len(self.playlist) != 0 :
             self.data_current = pyglet.media.load(self.playlist[self.current_index])
 
@@ -61,7 +59,10 @@ class MusicPlayer:
         self.play()
         self.current_index -= 1
         self.load()
-    
+
+    def on_end_song(self):
+        print("END_SONG()")
+
     def get_playback_time(self):
         return self.player.time
 
@@ -89,19 +90,10 @@ class MusicPlayer:
             return
         # self.add_music_list([music_url.replace("file:///", "")])
 
-    def open_subtitle_file():
-        # OPENING A SRT FILE
-        cGREEN()
-        print("Please select a SRT file (subtitles file)")
-        cRED()
-        file_path = filedialog.askopenfilename(filetypes=subtitle_formats)
-        file_url = urllib.parse.urljoin("file:", urllib.request.pathname2url(os.path.abspath(file_path)))
-        file_url = urllib.parse.unquote(file_url)
-        timeliner.srt_path = file_url
-
     def exit(self):
         self.player.pause()
         self.player.delete()
+
 
 reproductor = MusicPlayer()
 

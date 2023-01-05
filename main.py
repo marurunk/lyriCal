@@ -1,22 +1,22 @@
 import sys
-from src import timeliner
+from src import sync_lyric_system
 from src import subtitlePopup
 from src import music
 from src.colors import *
 
-subtitle_window = subtitlePopup.SubtitleWindow()
+subtitlePopup = subtitlePopup.SubtitleWindow()
+lyricSystem = sync_lyric_system.LyricSystem(subtitlePopup)
 
 def init_subtitle_window():
-    subtitle_window.move_center()
-    subtitle_window.protocol("WM_DELETE_WINDOW", exit)
-    timeliner.start(subtitle_window)
+    subtitlePopup.move_center()
+    subtitlePopup.protocol("WM_DELETE_WINDOW", exit)
 
-    subtitle_window.mainloop()
+    subtitlePopup.mainloop()
     exit()
 
 def exit():
     cBLUE()
-    timeliner.music_run = False
+    lyricSystem.stopSyncronizer()
     music.reproductor.exit()
     print("PROGRAM CLOSED")
     cRED()
@@ -25,8 +25,10 @@ def exit():
 def init():
     # music.reproductor.open_music_carpet()
     music.reproductor.open_music_file()
-    timeliner.open_subtitle_file()
-    init_subtitle_window()
+    
+    lyricSystem.change_lyric_file()
+    music.reproductor.play()
+    init_subtitle_window()  
 
 
 

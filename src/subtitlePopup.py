@@ -1,8 +1,6 @@
 from tkinter.font import Font
-import src.timeliner as timeliner
 import src.music as music
 from tkinter import *
-from ctypes import windll
 
 
 MIN_WIDTH = 200
@@ -59,6 +57,8 @@ class SubtitleWindow(Tk):
         
         #LOGIC
         self.old_x, self.old_y = None, None
+        self.old_center_x = self.winfo_x() + (self.winfo_width()/2)
+        self.old_center_y = self.winfo_y() + (self.winfo_height()/2)
         
 
     def destroy_both(self):
@@ -108,6 +108,9 @@ class SubtitleWindow(Tk):
         # Mueva la ventana al centro de la pantalla
         self.geometry(f"+{x_pos}+{y_pos}")
         self.background_window.geometry(f"+{x_pos}+{y_pos}")
+        
+        self.old_center_x = self.winfo_x() + (self.winfo_width()/2)
+        self.old_center_y = self.winfo_y() + (self.winfo_height()/2)
     
     def fix_position(self):
         
@@ -122,15 +125,10 @@ class SubtitleWindow(Tk):
             self.update_geometry()       
         
     def pause(self, event):
-        #if music.Player.playing:
-        #    music.Player.pause()
-        #else:
-        #    music.Player.play()
         music.reproductor.pause()
 
     def update_geometry(self):
-        self.old_center_x = self.winfo_x() + (self.winfo_width()/2)
-        self.old_center_y = self.winfo_y() + (self.winfo_height()/2)
+
 
         self.geometry(f"{self.label_subtitle.winfo_reqwidth()}x{self.label_subtitle.winfo_reqheight()}")
         self.background_window.geometry(f"{self.label_subtitle.winfo_reqwidth()}x{self.label_subtitle.winfo_reqheight()}")
