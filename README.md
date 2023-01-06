@@ -1,4 +1,5 @@
 # LyriCal MusicPlayer by [@marurunk](https://github.com/marurunk)
+![presentation.png](/src/img/presentation.png)
 ### A music player for karaoke (Windows)
 
 ## Run instruction
