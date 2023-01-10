@@ -18,21 +18,25 @@ class LyricSystem():
         self.current_index = 0
         self.subtitlePopup = subtitlePopup
         self.musicPlayer = musicPlayer
-        self.is_active = threading.Event()
         self.loop = True
-        self.lock = threading.Lock()
+        self.main_thread : threading.Thread
+        self.current_LyricObjet : lyrics_reader.LyricObject
+        self.active = False
+        self.lock = threading.Lock()    
 
     def set_current_lyric(self, index : int) -> None:
-        self.current_Lyric_path = self.playlist_lyrics_path[index]
+        self.current_index = index
+        self.change_lyric()
 
     
     def load_lyric(self) -> None:
         if self.playlist == []: return
-        try: file_path = filedialog.askopenfilename(filetypes=subtitle_formats, title="Select a Lyric file")
-        except: 
+        file_path = filedialog.askopenfilename(filetypes=subtitle_formats, title="Select a Lyric file")
+        if file_path == None:
             self.current_Lyric_path = None
             self.add_lyric_path(file_url)
-        finally:
+            return
+        else:
             file_url = urllib.parse.urljoin("file:", urllib.request.pathname2url(os.path.abspath(file_path)))
             file_url = urllib.parse.unquote(file_url)
             
@@ -41,7 +45,6 @@ class LyricSystem():
             
     
     def find_lyric(self, url : str) -> bool: # BUG THREAD CONFLICT
-        self.stopSyncronizer()
         carpet = os.path.dirname(url)
         file_list = os.listdir(carpet)
         song_name = os.path.basename(url)
@@ -59,127 +62,103 @@ class LyricSystem():
     def add_lyric_path(self, URL : str | None) -> None:
         self.playlist.append(URL)
         self.current_index = len(self.playlist)-1
+        self.change_lyric()
 
     def delete_lyric_path(self, URL : str) -> None:
-        self.playlist_lyrics_path.remove(URL)
+        self.playlist.remove(URL)
 
     def stopSyncronizer(self) -> None:
-        with self.lock:
-            self.is_active.clear()
-            self.is_active = threading.Event()
-            self.subtitlePopup.unshow()
+        self.active = False
+        self.subtitlePopup.unshow()
+        try: self.main_thread.join(10)
+        except AttributeError: pass
         
-    def SRT_syncronizer_loop(self, SRT_object : lyrics_reader.SRT_Object) -> None:
+    def startSyncronizer(self) -> None:
+        if self.current_Lyric_path == None: return
+        self.main_thread = threading.Thread(target=self.sync_loop)
+        self.subtitlePopup.show()
+        self.active = True
+        self.main_thread.start()
+
+    def next(self):
+        if self.playlist == [] : return
+        if self.current_index < len(self.playlist) - 1:    
+            self.current_index += 1
+            self.change_lyric()
+        elif self.current_index == len(self.playlist) - 1 and self.loop:    
+            self.current_index = 0
+            self.change_lyric()
+               
+    def back(self):
+        if self.playlist == [] : return
+        if self.current_index > 0:    
+            self.current_index -= 1
+            self.change_lyric()
+        elif self.current_index == 0 and self.loop:
+            self.current_index = len(self.playlist) - 1
+            self.change_lyric()
+
+    def set_index(self, index:int) -> None:
+        self.current_index = index
+        self.change_lyric()
+        
+    def change_lyric(self):
+        self.current_Lyric_path = self.playlist[self.current_index]
+        if not self.current_Lyric_path == None:
+            with self.lock:
+                self.current_LyricObjet = lyrics_reader.LyricObject(self.current_Lyric_path)
+        else:
+            self.current_LyricObjet = None
+            
+    def sync_loop(self):
+        print("sync loop start")
+        while self.active:
+            if self.current_LyricObjet == None:
+                print("objet is None")
+                time.sleep(1)
+                continue
+            if self.current_LyricObjet.format == "LRC":
+                print("objet is LRC")
+                self.LRC_syncronizer(self.current_LyricObjet)
+            elif self.current_LyricObjet.format == "SRT":
+                print("objet is SRT")
+                self.SRT_syncronizer(self.current_LyricObjetu)
+            
+            time.sleep(0.2)
+        print("sync loop end")
+    
+    def SRT_syncronizer(self,SRT_object) -> None:
         times_list = []
         for both_times in SRT_object.times:
             times_list.append(both_times["start"])
             times_list.append(both_times["end"])
 
-        # while self.is_active:
-        while self.is_active.is_set():
-            subtitle_index = -1
-            for i, subtitle_time in enumerate(times_list):
-                if not self.is_active.is_set():
-                    subtitle_index = -2
-                    break
-                if self.musicPlayer.get_playback_time() > subtitle_time:
-                    subtitle_index = i
-                else:
-                    break
-            
-            if subtitle_index == -2: break
-            
-            if subtitle_index != -1 and subtitle_index % 2 == 0:
-                subtitle = SRT_object.subtitles[int(subtitle_index/2)]
-                try: self.subtitlePopup.set_txt(subtitle)
-                except RuntimeError: print("RUNTIME ERROR")
+        subtitle_index = -1
+        for i, subtitle_time in enumerate(times_list):
+            if self.musicPlayer.get_playback_time() > subtitle_time: subtitle_index = i
+            else: break
+        
+        if subtitle_index != -1 and subtitle_index % 2 == 0:
+            subtitle = SRT_object.subtitles[int(subtitle_index/2)]
+            try: self.subtitlePopup.set_txt(subtitle)
+            except RuntimeError: return
+        else:
+            try: self.subtitlePopup.set_txt("")
+            except RuntimeError: return
+
+    def LRC_syncronizer(self,LRC_object) -> None:
+        subtitle_index = -1
+
+        for i, LyricObj in enumerate(LRC_object.lyricsList):
+            if self.musicPlayer.get_playback_time() > LyricObj["time"]:
+                subtitle_index = i
             else:
-                try: self.subtitlePopup.set_txt("")
-                except RuntimeError: print("RUNTIME ERROR")
-            time.sleep(0.001)
-        print("SRT thread: BUCLE CERRADO")
+                break
 
-    def LRC_syncronizer_loop(self, LRC_object : lyrics_reader.LRC_Object) -> None:
-        # while self.is_active:
-        while self.is_active.is_set():
-            subtitle_index = -1
-            with self.lock:
-                if not self.is_active.is_set():
-                    break
-
-            for i, LyricObj in enumerate(LRC_object.lyricsList):
-                with self.lock:
-                    if not self.is_active.is_set():
-                        subtitle_index = -2
-                        break
-                
-                if self.musicPlayer.get_playback_time() > LyricObj["time"]:
-                    subtitle_index = i
-                else:
-                    break
-            if subtitle_index == -2: break
-
-            if subtitle_index != -1:
-                subtitle = LRC_object.lyricsList[subtitle_index]["lyric"]
-                try: self.subtitlePopup.app.after(1,self.subtitlePopup.set_txt(subtitle))
-                except RuntimeError: print("RUNTIME ERROR")
-            else:
-                try: self.subtitlePopup.app.after(1,self.subtitlePopup.set_txt(""))
-                except RuntimeError: print("RUNTIME ERROR")
-
-            time.sleep(0.001)
-        print("LRC thread: BUCLE CERRADO")
-    
-    def startSyncronizer(self) -> None:
-        with self.lock:
-            if self.is_active.is_set(): raise RuntimeError
-        if self.current_Lyric_path == None: return
-        self.subtitlePopup.show()
-        if self.current_Lyric_path.endswith(".srt"):
-            print("START SRT")
-            SRT = lyrics_reader.create_SRT_obj(self.current_Lyric_path)
-            syncronizer_SRT_thread = threading.Thread( 
-                                            target=self.SRT_syncronizer_loop, 
-                                            args=(SRT,))
-            self.is_active.set()
-            syncronizer_SRT_thread.start()
-        elif self.current_Lyric_path.endswith(".lrc"):
-            print("START LRC")
-            LRC = lyrics_reader.create_LRC_object(self.current_Lyric_path)
-            syncronizer_LRC_thread = threading.Thread(
-                                            target=self.LRC_syncronizer_loop, 
-                                            args=(LRC,))
-            self.is_active.set()
-            # self.is_active = True
-            syncronizer_LRC_thread.start()
-
-    def next(self):
-        self.stopSyncronizer()
-        if self.playlist == [] : return
-        if self.current_index < len(self.playlist) - 1:    
-            self.current_Lyric_path = self.playlist[self.current_index + 1]
-            self.current_index += 1
-        elif self.current_index == len(self.playlist) - 1 and self.loop:    
-            self.current_Lyric_path = self.playlist[0]
-            self.current_index = 0
-
-        self.startSyncronizer()
-               
-    def back(self):
-        self.stopSyncronizer()
-        if self.playlist == [] : return
-        if self.current_index > 0:    
-            self.current_Lyric_path = self.playlist[self.current_index - 1]
-            self.current_index -= 1
-        elif self.current_index == 0 and self.loop:
-            self.current_Lyric_path = self.playlist[-1]
-            self.current_index = len(self.playlist) - 1
-            
-            self.current_index = len(self.playlist)-1
-        self.startSyncronizer()
-
-    def set_index(self, index:int) -> None:
-        self.stopSyncronizer()
-        self.current_index = index
-        self.current_Lyric_path = self.playlist[self.current_index]
-        self.startSyncronizer()
+        if subtitle_index != -1:
+            subtitle = LRC_object.lyricsList[subtitle_index]["lyric"]
+            try: self.subtitlePopup.app.after(1, self.subtitlePopup.set_txt(subtitle))
+            except RuntimeError: return
+        else:
+            try: self.subtitlePopup.app.after(1, self.subtitlePopup.set_txt(""))
+            except RuntimeError: return

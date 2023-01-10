@@ -12,17 +12,16 @@ class Controller:
     
     def load_new_song(self) -> None:
         url = self.musicPlayer.open_music_file()
-        self.lyricSystem.stopSyncronizer()
         if url == None: return
         if self.lyricSystem.find_lyric(url):
-            self.lyricSystem.startSyncronizer()
+            pass
         title = self.musicPlayer.get_title(url)
         self.playlist.append(title)
-        self.musicPlayer.play()
+        self.musicPlayer.set_index(len(self.playlist)-1)
+        if not self.lyricSystem.active: self.lyricSystem.startSyncronizer()
     
     def load_lyric(self) -> None:
         self.lyricSystem.load_lyric()
-        self.lyricSystem.startSyncronizer()
     
     def next_song(self):
         self.musicPlayer.next()
@@ -40,8 +39,6 @@ class Controller:
         pass
     
     def add_song(self):
-        self.musicPlayer.delete_song(self.playlist[index])
-        self.lyricSystem.delete_lyric(self.playlist[index])
         pass
 
     def pause(self):

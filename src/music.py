@@ -93,6 +93,7 @@ class MusicPlayer:
 
     def open_music_file(self) -> str | None:
         file_path = filedialog.askopenfilename(filetypes=music_formats, title="Select a Music file")
+        print(file_path)
         if file_path == "": return None
         music_url = urllib.parse.urljoin("file:", urllib.request.pathname2url(os.path.abspath(file_path)))
         music_url = urllib.parse.unquote(music_url)

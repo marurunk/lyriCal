@@ -67,4 +67,16 @@ class LRC_Object:
     self.lyricsList = data["lyrics"]
 
 
-
+class LyricObject:
+  def __init__(self, lyric_file:str) -> None:
+    if lyric_file == None: return None
+    if lyric_file.endswith(".lrc"):
+      self.format = "LRC"
+      self.lyricsList = create_LRC_object(lyric_file).lyricsList
+    elif lyric_file.endswith(".srt"):
+      self.format = "SRT"
+      srt = create_SRT_obj(lyric_file)
+      self.subtitles = srt.subtitles
+      self.times = srt.times
+    else: raise TypeError
+  
