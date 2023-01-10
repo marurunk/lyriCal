@@ -1,7 +1,6 @@
 from datetime import timedelta
 import re
 
-musicURL = "myMusic.srt"
 patron_SRT_text = r"\d+\n\d\d:\d\d:\d\d,\d\d\d --> \d\d:\d\d:\d\d,\d\d\d\n((?:.|\n)*?)(?=\n\d+\n|$)"
 patron_SRT_times = r"(\d\d:\d\d:\d\d,\d\d\d) --> (\d\d:\d\d:\d\d,\d\d\d)"
 
@@ -52,9 +51,9 @@ def get_LRC_lyrics(file_URL:str):
     for line in lines:
         if line.startswith('['):
             time_str, lyric = line.split('] ')
-            time = timedelta(minutes=int(time_str[1:3]), seconds=int(time_str[4:6]), milliseconds=int(time_str[7:9])).total_seconds()
+            seconds = timedelta(minutes=int(time_str[1:3]), seconds=int(time_str[4:6]), milliseconds=int(time_str[7:9])).total_seconds()
             #CREATE LIST OF DICTS WITH KEYS "times" and "lyric" 
-            lyrics.append({"time": time, "lyric": lyric})
+            lyrics.append({"time": seconds, "lyric": lyric})
     return lyrics
 
 def create_LRC_object(file_URL:str):
