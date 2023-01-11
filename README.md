@@ -4,9 +4,13 @@
 ### Have a floating lyrics in your desktop no matter what you are doing
 
 ## Shorcuts
-- K to pause & play
-- L to Next
-- J to Back
+- `K` to pause & play
+- `L` to Next
+- `J` to Back
+
+### I don't have lyrics of my music:
+---
+LyriCal fynd the lyrics on the same music carpet, if you dont have lyrics don't worry because exist [LRCGET](https://github.com/tranxuanthang/lrcget) that automaticaly downloading the synced lyrics from lyrics servers, download directly [>here<](https://github.com/tranxuanthang/lrcget/releases/latest). Credits for [tranxuanthang](https://github.com/tranxuanthang) :)
 
 
 ## Dependencies
@@ -14,6 +18,7 @@
     python3
     pip install pyglet
     pip install colorama
+    pip install customtkinter
 ```
 
 ## To do list:
