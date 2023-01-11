@@ -32,10 +32,10 @@ class LyricSystem():
     def load_lyric(self) -> None:
         if self.playlist == []: return
         file_path = filedialog.askopenfilename(filetypes=subtitle_formats, title="Select a Lyric file")
-        if file_path == None:
+        if not file_path.endswith(".lrc") or not file_path.endswith(".srt") :
             print("file path is none")
+            self.playlist[self.current_index] = None
             self.current_Lyric_path = None
-            self.add_lyric_path(None)
             return
         else:
             file_url = urllib.parse.urljoin("file:", urllib.request.pathname2url(os.path.abspath(file_path)))
@@ -44,7 +44,7 @@ class LyricSystem():
             print(f"file path is {file_url}")
             self.current_Lyric_path = file_url
             self.playlist[self.current_index] = file_url
-            self.add_lyric_path(self.current_Lyric_path)
+            self.change_lyric()
     
     def find_lyric(self, url : str) -> bool:
         carpet = os.path.dirname(url)
@@ -119,13 +119,14 @@ class LyricSystem():
                 self.subtitlePopup.unshow()
                 time.sleep(1)
                 continue
-            if self.current_LyricObjet.format == "LRC":
-                self.subtitlePopup.show()
-                self.LRC_syncronizer(self.current_LyricObjet)
-            elif self.current_LyricObjet.format == "SRT":
-                self.subtitlePopup.show()
-                self.SRT_syncronizer(self.current_LyricObjet)
-            
+            try:
+                if self.current_LyricObjet.format == "LRC":
+                    self.subtitlePopup.show()
+                    self.LRC_syncronizer(self.current_LyricObjet)
+                elif self.current_LyricObjet.format == "SRT":
+                    self.subtitlePopup.show()
+                    self.SRT_syncronizer(self.current_LyricObjet)
+            except AttributeError: continue
             time.sleep(0.2)
         print("sync loop end")
     
