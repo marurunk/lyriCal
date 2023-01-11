@@ -1,35 +1,27 @@
-# LyriCal MusicPlayer by [@marurunk](https://github.com/marurunk)
 ![presentation.png](/src/img/presentation.png)
-### A music player for karaoke (Windows)
+# LyriCal MusicPlayer by [@marurunk](https://github.com/marurunk)
+### A music player for karaoke
+### Have a floating lyrics in your desktop no matter what you are doing
 
-## Run instruction
-1. run the program:
-```python
-    python main.py
-```
-2. Choose a srt file
-3. Choose music file (compatible with pygame)
-4. Now you have a subtitle popup :)
 ## Shorcuts
-- K to pause/play
+- K to pause & play
+- L to Next
+- J to Back
 
 
 ## Dependencies
-1. install python3 in your Windows.
-2. install pyglet:
 ```python 
+    python3
     pip install pyglet
-```
-3. install colorama:
-```python 
     pip install colorama
 ```
 
 ## To do list:
-- Main User Interface
-- Music player logic
-- Playlist Manager
 - Subtitle Aspect configuration window
+- Slider and time in MM:SS format
+- Lyrics Toggle function
+- Open a whole carpet function 
+- Program Database
 
 
 
