@@ -24,4 +24,4 @@ Be sure to follow good coding practices and explain your changes in code comment
 
 ## Code of conduct
 
-Please make sure to follow the [code of conduct](https://github.com/marurunk/lyriCal/blob/main/CODE_OF_CONDUCT.md) when contributing to the music player.
+Please make sure to follow the [code of conduct](https://github.com/marurunk/lyriCal/CODE_OF_CONDUCT.md) when contributing to the music player.
