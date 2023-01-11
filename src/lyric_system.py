@@ -33,18 +33,20 @@ class LyricSystem():
         if self.playlist == []: return
         file_path = filedialog.askopenfilename(filetypes=subtitle_formats, title="Select a Lyric file")
         if file_path == None:
+            print("file path is none")
             self.current_Lyric_path = None
-            self.add_lyric_path(file_url)
+            self.add_lyric_path(None)
             return
         else:
             file_url = urllib.parse.urljoin("file:", urllib.request.pathname2url(os.path.abspath(file_path)))
             file_url = urllib.parse.unquote(file_url)
             
-            self.playlist[self.current_index] = file_url
+            print(f"file path is {file_url}")
             self.current_Lyric_path = file_url
-            
+            self.playlist[self.current_index] = file_url
+            self.add_lyric_path(self.current_Lyric_path)
     
-    def find_lyric(self, url : str) -> bool: # BUG THREAD CONFLICT
+    def find_lyric(self, url : str) -> bool:
         carpet = os.path.dirname(url)
         file_list = os.listdir(carpet)
         song_name = os.path.basename(url)
@@ -74,9 +76,8 @@ class LyricSystem():
         except AttributeError: pass
         
     def startSyncronizer(self) -> None:
-        if self.current_Lyric_path == None: return
-        self.main_thread = threading.Thread(target=self.sync_loop)
         self.subtitlePopup.show()
+        self.main_thread = threading.Thread(target=self.sync_loop)
         self.active = True
         self.main_thread.start()
 
@@ -112,27 +113,29 @@ class LyricSystem():
             
     def sync_loop(self):
         print("sync loop start")
+        self.subtitlePopup.show()
         while self.active:
             if self.current_LyricObjet == None:
-                print("objet is None")
+                self.subtitlePopup.unshow()
                 time.sleep(1)
                 continue
             if self.current_LyricObjet.format == "LRC":
-                print("objet is LRC")
+                self.subtitlePopup.show()
                 self.LRC_syncronizer(self.current_LyricObjet)
             elif self.current_LyricObjet.format == "SRT":
-                print("objet is SRT")
-                self.SRT_syncronizer(self.current_LyricObjetu)
+                self.subtitlePopup.show()
+                self.SRT_syncronizer(self.current_LyricObjet)
             
             time.sleep(0.2)
         print("sync loop end")
     
     def SRT_syncronizer(self,SRT_object) -> None:
         times_list = []
-        for both_times in SRT_object.times:
-            times_list.append(both_times["start"])
-            times_list.append(both_times["end"])
-
+        try:
+            for both_times in SRT_object.times:
+                times_list.append(both_times["start"])
+                times_list.append(both_times["end"])
+        except AttributeError: return
         subtitle_index = -1
         for i, subtitle_time in enumerate(times_list):
             if self.musicPlayer.get_playback_time() > subtitle_time: subtitle_index = i
@@ -148,13 +151,14 @@ class LyricSystem():
 
     def LRC_syncronizer(self,LRC_object) -> None:
         subtitle_index = -1
-
-        for i, LyricObj in enumerate(LRC_object.lyricsList):
-            if self.musicPlayer.get_playback_time() > LyricObj["time"]:
-                subtitle_index = i
-            else:
-                break
-
+        try:
+            for i, LyricObj in enumerate(LRC_object.lyricsList):
+                if self.musicPlayer.get_playback_time() > LyricObj["time"]:
+                    subtitle_index = i
+                else:
+                    break
+        except AttributeError: return
+        
         if subtitle_index != -1:
             subtitle = LRC_object.lyricsList[subtitle_index]["lyric"]
             try: self.subtitlePopup.app.after(1, self.subtitlePopup.set_txt(subtitle))

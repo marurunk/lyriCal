@@ -78,5 +78,5 @@ class LyricObject:
       srt = create_SRT_obj(lyric_file)
       self.subtitles = srt.subtitles
       self.times = srt.times
-    else: raise TypeError
+    else: return None
   

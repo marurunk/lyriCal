@@ -21,6 +21,7 @@ class Controller:
         if not self.lyricSystem.active: self.lyricSystem.startSyncronizer()
     
     def load_lyric(self) -> None:
+        if not self.lyricSystem.active: self.lyricSystem.startSyncronizer()
         self.lyricSystem.load_lyric()
     
     def next_song(self):
