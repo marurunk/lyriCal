@@ -30,8 +30,9 @@ class LyricSystem():
 
     
     def load_lyric(self) -> None:
+        music_folder = os.path.expanduser('~/Music')
         if self.playlist == []: return
-        file_path = filedialog.askopenfilename(filetypes=subtitle_formats, title="Select a Lyric file")
+        file_path = filedialog.askopenfilename(filetypes=subtitle_formats, title="Select a Lyric file",initialdir=music_folder)
         if not file_path.endswith(".lrc") and not file_path.endswith(".srt") :
             print("file path is none", file_path)
             self.playlist[self.current_index] = None

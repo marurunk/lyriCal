@@ -17,20 +17,23 @@ class Controller:
         if self.lyricSystem.find_lyric(url):
             pass
         title = self.musicPlayer.get_title(url)
+        li = list(title)
+        li.insert(0," ")
+        title = "".join(li)
         self.playlist.append(title)
         self.musicPlayer.set_index(len(self.playlist)-1)
         if not self.lyricSystem.active: self.lyricSystem.startSyncronizer()
     
     def load_lyric(self) -> None:
-        if not self.lyricSystem.active: self.lyricSystem.startSyncronizer()
+        if not self.lyricSystem.active: return
         self.lyricSystem.load_lyric()
     
-    def next_song(self):
+    def next_song(self, e=None):
         self.musicPlayer.next()
         self.lyricSystem.next()
         pass
     
-    def back_song(self):
+    def back_song(self, e=None):
         self.musicPlayer.back()
         self.lyricSystem.back()
         pass
@@ -43,7 +46,7 @@ class Controller:
     def add_song(self):
         pass
 
-    def pause(self):
+    def pause(self, e=None):
         self.musicPlayer.pause()
     
     def play(self):
@@ -51,6 +54,7 @@ class Controller:
         pass
 
     def exit(self):
+        self.GUI.animation_active = False
         cBLUE()
         print("PROGRAM CLOSED")
         cRED()

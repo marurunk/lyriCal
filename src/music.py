@@ -33,7 +33,6 @@ class MusicPlayer:
         print(f"MusicPlayer: {self.current_index+1}/{len(self.playlist)} | {os.path.basename(self.playlist[self.current_index])}")
 
     def pause(self, event = None):
-        print("MusicPlayer: paused")
         if self.player.playing: 
             self.player.pause()
         else:
@@ -92,7 +91,8 @@ class MusicPlayer:
             return 0
 
     def open_music_file(self) -> str | None:
-        file_path = filedialog.askopenfilename(filetypes=music_formats, title="Select a Music file")
+        music_folder = os.path.expanduser('~/Music')
+        file_path = filedialog.askopenfilename(filetypes=music_formats, title="Select a Music file", initialdir=music_folder)
         if file_path == "": return None
         music_url = urllib.parse.urljoin("file:", urllib.request.pathname2url(os.path.abspath(file_path)))
         music_url = urllib.parse.unquote(music_url)
@@ -100,8 +100,9 @@ class MusicPlayer:
         return music_url.replace("file:///", "")
 
     def open_music_carpet(self):
+        music_folder = os.path.expanduser('~/Music')
         try:
-            file_path = filedialog.askdirectory(title="Select a Music Carpet")
+            file_path = filedialog.askdirectory(title="Select a Music Carpet", initialdir=music_folder)
             music_url = urllib.parse.urljoin("file:", urllib.request.pathname2url(os.path.abspath(file_path)))
             music_url = urllib.parse.unquote(music_url)
         except:
