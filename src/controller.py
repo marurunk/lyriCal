@@ -12,7 +12,6 @@ class Controller:
     
     def load_new_song(self) -> None:
         url = self.musicPlayer.open_music_file()
-        print(url)
         if url == None: return
         if self.lyricSystem.find_lyric(url):
             pass

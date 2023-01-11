@@ -94,6 +94,7 @@ class LyriCal_GUI():
         
         PROGRAM_TITLE_FONT = customtkinter.CTkFont(family="Segoe UI Variable", size=20)
         TITLE_FONT = customtkinter.CTkFont(family="data/Roboto-Bold.ttf", size=12)
+        ARTIST_FONT = customtkinter.CTkFont(family="data/Roboto-Bold.ttf", size=10)
         BUTTON_FONT = customtkinter.CTkFont(family="data/Roboto-Bold.ttf", size=10)
         SUBTITLE_FONT = Font(family="data/Roboto-Bold.ttf", size=20)
         SONG_FONT = customtkinter.CTkFont(family="data/Roboto-Bold.ttf", size=12)
@@ -110,8 +111,6 @@ class LyriCal_GUI():
         
         self.label_program_title = customtkinter.CTkLabel(self.frame, text="LyriCal", font=PROGRAM_TITLE_FONT,
                                                fg_color=("white",COLOR_BG))
-        self.label_song_title = customtkinter.CTkLabel(self.frame, text="let me let you go", font=TITLE_FONT,
-                                               fg_color=("white",COLOR_BG), anchor="center")
         
         self.box_playlist = Listbox(self.frame,font=SONG_FONT,highlightcolor=COLOR_1,selectbackground=COLOR_1,highlightthickness=0.5)
         
@@ -135,7 +134,14 @@ class LyriCal_GUI():
         self.bt_next = customtkinter.CTkButton(self.frame, text="Next", font=BUTTON_FONT,
                                                 fg_color=('white',COLOR_1),hover_color=COLOR_2,bg_color=COLOR_BG,
                                                 border_color="black",border_width=2)
+
         
+        self.label_song_title = customtkinter.CTkLabel(self.frame, text="", font=TITLE_FONT,
+                                               fg_color=("white",COLOR_BG), anchor="center")
+        
+        self.label_song_artist = customtkinter.CTkLabel(self.frame, text="", font=ARTIST_FONT,
+                                               fg_color=("#eee",COLOR_BG), anchor="center")
+
         #------------------------------------------------------------------------------#
         
         self.frame.grid_rowconfigure(0, weight=1)
@@ -143,6 +149,7 @@ class LyriCal_GUI():
         self.frame.grid_rowconfigure(2, weight=3)
         self.frame.grid_rowconfigure(3, weight=0)
         self.frame.grid_rowconfigure(4, weight=0)
+        self.frame.grid_rowconfigure(5, weight=0)
         self.frame.grid_columnconfigure(0, weight=1)
         self.frame.grid_columnconfigure(1, weight=1)
         self.frame.grid_columnconfigure(2, weight=1)
@@ -158,14 +165,19 @@ class LyriCal_GUI():
                                                             row=0,column=3,sticky="nsew")
         self.box_playlist.grid(pady=10,padx=10,
                                                             row=1,column=0,sticky="nsew", columnspan=4,rowspan=2,)
+        
         self.label_song_title.grid(pady=0,padx=10,
                                                             row=3,column=0,sticky="ew",   columnspan=4)
+        self.label_song_artist.grid(pady=0,padx=10,
+                                                            row=4,column=0,sticky="ew",   columnspan=4)
+        
+        
         self.bt_back.grid(     ipady=4,ipadx=4,pady=10,padx=2,
-                                                            row=4,column=0,sticky="nsew")
+                                                            row=5,column=0,sticky="nsew")
         self.bt_pause.grid(    ipady=4,ipadx=4,pady=10,padx=0,
-                                                            row=4,column=1,sticky="nsew")
+                                                            row=5,column=1,sticky="nsew")
         self.bt_next.grid(     ipady=4,ipadx=4,pady=10,padx=2,
-                                                            row=4,column=2,sticky="nsew")
+                                                            row=5,column=2,sticky="nsew")
 
     def configure_widgets(self):
         
