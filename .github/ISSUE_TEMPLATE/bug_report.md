@@ -7,10 +7,10 @@ assignees: ''
 
 ---
 
-**Describe the bug**
+### Description:
 A clear and concise description of what the bug is.
 
-**To Reproduce**
+### How To Reproduce:
 Steps to reproduce the behavior:
 1. Go to '...'
 2. Doing '....'
@@ -20,7 +20,7 @@ Steps to reproduce the behavior:
 A clear and concise description of what you expected to happen.
 
 **Screenshots**
-If applicable, add screenshots to help explain your problem.
+Add screenshots to help explain the issue.
 
-**Additional context**
+### Context:
 Add any other context about the problem here.
