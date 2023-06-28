@@ -19,11 +19,11 @@ LyriCal fynd the lyrics on the same music carpet, if you dont have lyrics don't 
 ```
 
 ## To do list:
--[ ] Subtitle Aspect configuration window
--[ ] Slider and time in MM:SS format
--[ ] Lyrics Toggle function
--[ ] Open a whole carpet function 
--[ ] Program Database
+- [ ] Subtitle Aspect configuration window
+- [ ] Slider and time in MM:SS format
+- [ ] Lyrics Toggle function
+- [ ] Open a whole carpet function 
+- [ ] Program Database
 
 
 
