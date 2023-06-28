@@ -15,10 +15,7 @@ LyriCal fynd the lyrics on the same music carpet, if you dont have lyrics don't 
 
 ## Dependencies
 ```python 
-    python3
-    pip install pyglet
-    pip install colorama
-    pip install customtkinter
+    pip install pyglet colorama customtkinter
 ```
 
 ## To do list:
