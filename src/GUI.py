@@ -7,7 +7,10 @@ import customtkinter
 from src.controller import Controller
 from src.colors import *
 from src.subtitlePopup import SubtitlePopup
-from ctypes import windll
+import os
+
+if os.name == "nt":
+    from ctypes import windll
 
 #---------------------------------------------#
 
@@ -55,10 +58,11 @@ class LyriCal_GUI():
         self.app.title("LyricCal")
         self.app.geometry(f"{MIN_WIDTH}x{MIN_HEIGHT}")
         self.app.config(background='grey')
-        self.app.attributes("-transparentcolor", TRANSPARENT_COLOR)
         self.app.minsize(MIN_WIDTH, MIN_HEIGHT)
         self.app.protocol("WM_DELETE_WINDOW", self.controller.exit)
-        set_appwindow(self.app)
+        if os.name == "nt":
+            self.app.attributes("-transparentcolor", TRANSPARENT_COLOR)
+            set_appwindow(self.app)
                 
         #-----------------------------FRONTENT GUI---------------------------------#
         
@@ -185,6 +189,8 @@ class LyriCal_GUI():
         self.bt_loadLyric.configure(command=self.controller.load_lyric)
         
         self.box_playlist.bind("<Double-Button-1>", self.set_song)
+        #self.box_playlist.bind("<Enter>", self.set_song)
+        self.box_playlist.bind("<space>", self.set_song)
         
         self.bt_pause.configure(command=self.controller.pause)
         self.bt_back.configure(command=self.back_song)

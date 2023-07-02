@@ -1,7 +1,6 @@
 from mutagen.mp3 import MP3
 from mutagen.m4a import M4A
 from mutagen.flac import FLAC
-from mutagen.wave import WAVE
 from mutagen.wavpack import WavPack
 import pyglet
 import os
@@ -45,7 +44,7 @@ class MusicPlayer:
         
     def load(self):
         if self.playlist == [] : return
-        
+        print("load()::: ", self.playlist)
         self.data_current = pyglet.media.load(self.playlist[self.current_index], streaming=True)
 
         if self.current_index < len(self.playlist) - 1 :
@@ -56,6 +55,8 @@ class MusicPlayer:
             self.data_previous = pyglet.media.load(self.playlist[self.current_index - 1], streaming=True)
         if self.current_index == 0:
             self.data_previous = pyglet.media.load(self.playlist[-1], streaming=True)
+
+        print("load():::", cGREEN(), "success:")
 
     def next(self):
         self.stop()
@@ -91,24 +92,34 @@ class MusicPlayer:
             return 0
 
     def open_music_file(self) -> str | None:
-        music_folder = os.path.expanduser('~/Music')
+        music_folder = os.path.expanduser('~/')
         file_path = filedialog.askopenfilename(filetypes=music_formats, title="Select a Music file", initialdir=music_folder)
         if file_path == "": return None
         music_url = urllib.parse.urljoin("file:", urllib.request.pathname2url(os.path.abspath(file_path)))
         music_url = urllib.parse.unquote(music_url)
-        self.add_music_list([music_url.replace("file:///", "")])
-        return music_url.replace("file:///", "")
+        if os.name == "nt":
+            self.add_music_list([music_url.replace("file:///", "")])
+            return music_url.replace("file:///", "")
+        elif os.name == "posix":
+            print("music_url:: ", music_url)
+            music_url = music_url.replace("file:///", "/")
+            if music_url in self.playlist:
+                return None
+            else:
+                self.add_music_list([music_url])
+                return music_url
 
     def open_music_carpet(self):
-        music_folder = os.path.expanduser('~/Music')
+        music_folder = os.path.expanduser('~/')
         try:
             file_path = filedialog.askdirectory(title="Select a Music Carpet", initialdir=music_folder)
-            music_url = urllib.parse.urljoin("file:", urllib.request.pathname2url(os.path.abspath(file_path)))
-            music_url = urllib.parse.unquote(music_url)
+            carpet_url = urllib.parse.urljoin("file:", urllib.request.pathname2url(os.path.abspath(file_path)))
+            carpet_url = urllib.parse.unquote(carpet_url)
         except:
             print("not a carpet error")
-            return
-        # self.add_music_list([music_url.replace("file:///", "")])
+            return None
+#        with( )
+        self.add_music_list()
 
     def stop(self):
         self.player.pause()
@@ -122,11 +133,11 @@ class MusicPlayer:
     def get_title(self, url:str) -> str:
         if url.endswith(".mp3"):
             try: return MP3(url)["TIT1"].text[0]
-            except KeyError:
+            except:
                 try: return MP3(url)["TIT2"].text[0]
-                except KeyError:
+                except:
                     try: return MP3(url)["TIT3"].text[0]
-                    except KeyError: return self.get_filename(url)
+                    except: return self.get_filename(url)
         elif url.endswith(".m4a"):
             return M4A(url)["\xa9nam"].text[0]
         elif url.endswith(".flac"):

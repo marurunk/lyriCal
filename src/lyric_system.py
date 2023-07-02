@@ -20,7 +20,7 @@ class LyricSystem():
         self.musicPlayer = musicPlayer
         self.loop = True
         self.main_thread : threading.Thread
-        self.current_LyricObjet : lyrics_reader.LyricObject
+        self.current_LyricObjet : lyrics_reader.LyricObject = None
         self.active = False
         self.lock = threading.Lock()    
 
@@ -30,7 +30,10 @@ class LyricSystem():
 
     
     def load_lyric(self) -> None:
-        music_folder = os.path.expanduser('~/Music')
+        if os.name == "nt":
+            music_folder = os.path.expanduser('~/Music')
+        else :
+            music_folder = os.path.expanduser('~/')
         if self.playlist == []: return
         file_path = filedialog.askopenfilename(filetypes=subtitle_formats, title="Select a Lyric file",initialdir=music_folder)
         if not file_path.endswith(".lrc") and not file_path.endswith(".srt") :
@@ -57,6 +60,7 @@ class LyricSystem():
             if name == song_name and extention in [".lrc",".srt"]:
                 self.current_Lyric_path = carpet + "/" + file 
                 self.add_lyric_path(self.current_Lyric_path)
+                print(file)
                 return True
         
         self.add_lyric_path(None)

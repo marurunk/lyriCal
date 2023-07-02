@@ -1,14 +1,14 @@
 from tkinter.font import Font
 import src.music as music
 from tkinter import *
-
+import os
 
 MIN_WIDTH = 200
 MIN_HEIGHT = 60
 
 BG_OPACITY = 0.5
 
-TRANSPARENT_COLOR = "grey"
+TRANSPARENT_COLOR = "#111"
 
 BG_COLOR = "#000"
 
@@ -20,7 +20,9 @@ class SubtitlePopup():
         self.app = Toplevel()
         self.app.overrideredirect(True)
         self.app.geometry(f"{MIN_WIDTH}x{MIN_HEIGHT}")
-        self.app.wm_attributes("-transparentcolor", TRANSPARENT_COLOR)
+        if os.name == "nt":
+            self.app.wm_attributes("-transparentcolor", TRANSPARENT_COLOR)
+        
         self.app.wm_attributes("-topmost", True)
         self.app.wm_attributes("-alpha", 0)
         self.app.config(bg=TRANSPARENT_COLOR)

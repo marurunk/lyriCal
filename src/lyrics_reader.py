@@ -1,13 +1,17 @@
 from datetime import timedelta
 import re
+import os
 
 patron_SRT_text = r"\d+\n\d\d:\d\d:\d\d,\d\d\d --> \d\d:\d\d:\d\d,\d\d\d\n((?:.|\n)*?)(?=\n\d+\n|$)"
 patron_SRT_times = r"(\d\d:\d\d:\d\d,\d\d\d) --> (\d\d:\d\d:\d\d,\d\d\d)"
 
 def read_lyric_file(file_URL:str) -> str:
-  with open(file_URL.replace("file:///",""), "r", encoding="utf-8") as f:
-      return f.read()
-    
+    if os.name == "nt":
+        with open(file_URL.replace("file:///",""), "r", encoding="utf-8") as f:
+            return f.read()
+    if os.name == "posix":
+        with open(file_URL.replace("file:///","/"), "r", encoding="utf-8") as f:
+            return f.read()
 def get_SRT_subs(file_URL:str) -> list:
     # Obtener dialogos
     subs = re.findall(patron_SRT_text, read_lyric_file(file_URL))

@@ -1,4 +1,4 @@
-from src.colors import cBLUE, cRED
+from src.colors import *
 from src.lyric_system import LyricSystem
 from src.music import MusicPlayer
 
@@ -16,11 +16,13 @@ class Controller:
         if self.lyricSystem.find_lyric(url):
             pass
         title = self.musicPlayer.get_title(url)
+        cRED()
+        print("the title is ::: ", title)
+        cWHITE()
         li = list(title)
         li.insert(0," ")
         title = "".join(li)
         self.playlist.append(title)
-        self.musicPlayer.set_index(len(self.playlist)-1)
         if not self.lyricSystem.active: self.lyricSystem.startSyncronizer()
     
     def load_lyric(self) -> None:
