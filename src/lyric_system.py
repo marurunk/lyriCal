@@ -37,7 +37,7 @@ class LyricSystem():
         if self.playlist == []: return
         file_path = filedialog.askopenfilename(filetypes=subtitle_formats, title="Select a Lyric file",initialdir=music_folder)
         if not file_path.endswith(".lrc") and not file_path.endswith(".srt") :
-            print("file path is none", file_path)
+            print("LYRICS NONE", file_path)
             self.playlist[self.current_index] = None
             self.current_Lyric_path = None
             return
@@ -45,7 +45,7 @@ class LyricSystem():
             file_url = urllib.parse.urljoin("file:", urllib.request.pathname2url(os.path.abspath(file_path)))
             file_url = urllib.parse.unquote(file_url)
             
-            print(f"file path is {file_url}")
+            print(f"LYRICS load succes:: {file_url}")
             self.current_Lyric_path = file_url
             self.playlist[self.current_index] = file_url
             self.change_lyric()
@@ -58,9 +58,10 @@ class LyricSystem():
         for file in file_list:
             name , extention = os.path.splitext(file)
             if name == song_name and extention in [".lrc",".srt"]:
-                self.current_Lyric_path = carpet + "/" + file 
-                self.add_lyric_path(self.current_Lyric_path)
-                print(file)
+                Lyric_path = carpet + "/" + file 
+                # self.current_Lyric_path = carpet + "/" + file 
+                self.add_lyric_path(Lyric_path)
+                print("Lyric finded: ",file)
                 return True
         
         self.add_lyric_path(None)
@@ -68,7 +69,8 @@ class LyricSystem():
 
     def add_lyric_path(self, URL : str | None) -> None:
         self.playlist.append(URL)
-        self.current_index = len(self.playlist)-1
+        
+#        self.current_index = len(self.playlist)-1
         self.change_lyric()
 
     def delete_lyric_path(self, URL : str) -> None:
@@ -110,7 +112,7 @@ class LyricSystem():
         
     def change_lyric(self):
         self.current_Lyric_path = self.playlist[self.current_index]
-        if not self.current_Lyric_path == None:
+        if self.current_Lyric_path != None:
             with self.lock:
                 self.current_LyricObjet = lyrics_reader.LyricObject(self.current_Lyric_path)
         else:

@@ -1,6 +1,26 @@
 from src.colors import *
 from src.lyric_system import LyricSystem
 from src.music import MusicPlayer
+import os
+import subprocess
+
+selecfile_path = os.path.abspath(__file__)
+selecfile_path = os.path.dirname(selecfile_path)
+selecfile_path = os.path.join(selecfile_path, "selectFile.py")
+
+def get_files(script_path) -> list | None:
+    proceso = subprocess.Popen(['python3', script_path], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    stdout, stderr = proceso.communicate()
+    if proceso.returncode == 0:
+        archivos_seleccionados = stdout.decode().splitlines()
+        print("archivos seleccionados::")
+        print(archivos_seleccionados)
+
+    proceso.kill()
+    if archivos_seleccionados[0] == "None" or archivos_seleccionados == None: return None
+    else:
+        return archivos_seleccionados
+
 
 
 class Controller:
@@ -11,18 +31,25 @@ class Controller:
         self.playlist = []
     
     def load_new_song(self) -> None:
-        url = self.musicPlayer.open_music_file()
-        if url == None: return
-        if self.lyricSystem.find_lyric(url):
-            pass
-        title = self.musicPlayer.get_title(url)
-        cRED()
-        print("the title is ::: ", title)
-        cWHITE()
-        li = list(title)
-        li.insert(0," ")
-        title = "".join(li)
-        self.playlist.append(title)
+
+        # urls = self.musicPlayer.open_music_files()
+        urls = get_files(selecfile_path)
+        if urls == None: return
+        self.musicPlayer.add_music_list(urls)
+        for url in urls:
+            if self.lyricSystem.find_lyric(url):
+                pass
+            title = self.musicPlayer.get_title(url)
+
+            cRED()
+            print("the title is ::: ", title)
+            cWHITE()
+
+            li = list(title)
+            li.insert(0," ")
+            title = "".join(li)
+            self.playlist.append(title)
+
         if not self.lyricSystem.active: self.lyricSystem.startSyncronizer()
     
     def load_lyric(self) -> None:

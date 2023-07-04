@@ -44,6 +44,8 @@ TRANSPARENT_COLOR = "grey"
 
 
 class LyriCal_GUI():
+    old_x = None
+    old_y = None
     def __init__(self) -> None:
 
         self.app = customtkinter.CTk()
@@ -63,6 +65,9 @@ class LyriCal_GUI():
         if os.name == "nt":
             self.app.attributes("-transparentcolor", TRANSPARENT_COLOR)
             set_appwindow(self.app)
+
+
+        #self.app.overrideredirect(True) 
                 
         #-----------------------------FRONTENT GUI---------------------------------#
         
@@ -86,7 +91,9 @@ class LyriCal_GUI():
         self.app.bind("<J>", self.controller.back_song)
         self.app.bind("<L>", self.controller.next_song)
         
-        
+        self.label_program_title.bind("<ButtonPress-1>", self.on_press)
+        self.label_program_title.bind("<ButtonRelease-1>", self.on_release)
+        self.label_program_title.bind("<B1-Motion>", self.on_motion)
         #------------------------------------------------------------------------------#
         
         self.app.lift()
@@ -200,6 +207,26 @@ class LyriCal_GUI():
         animation_thread = threading.Thread(target=self.title_animation)
         animation_thread.start()
 
+
+    def on_press(self, event):
+        # obtener la posición del mouse al presionar el botón izquierdo
+        self.old_x, self.old_y = event.x, event.y
+
+    def on_release(self, event):
+        # resetear la posición del mouse al soltar el botón izquierdo
+        self.old_x, self.old_y = None, None
+        
+
+    def on_motion(self, event):
+        # mover la ventana si se está presionando el botón izquierdo del mouse
+        if self.old_x is not None and self.old_y is not None:
+            deltax = event.x - self.old_x
+            deltay = event.y - self.old_y
+            self.app.geometry("+{}+{}".format(self.app.winfo_x() + deltax, self.app.winfo_y() + deltay))
+            
+            #self.app.lift()
+            #self.app.focus_force()
+ 
     def load_new_song(self):
         self.controller.load_new_song()
         self.update_playlist()

@@ -9,8 +9,8 @@ import urllib.request
 from tkinter import filedialog
 from src.colors import *
 
-music_formats = [( "Music Files", ( "*.mp3", "*.flac", "*.wav", "*.m4a" ))]
-subtitle_formats = [("SRT files", "*.srt")]
+music_formats = [( "Music", ( "*.mp3", "*.flac", "*.wav", "*.m4a" ))]
+subtitle_formats = [("Lyrics", ("*.srt", "*.lrc"))]
 
 class MusicPlayer:
     player = pyglet.media.Player()
@@ -29,7 +29,9 @@ class MusicPlayer:
     def play(self):
         self.player.queue(self.data_current)
         self.player.play()
-        print(f"MusicPlayer: {self.current_index+1}/{len(self.playlist)} | {os.path.basename(self.playlist[self.current_index])}")
+        cGREEN()
+        print(f"[ {self.current_index+1}/{len(self.playlist)} ]  {os.path.basename(self.playlist[self.current_index])}")
+        cWHITE()
 
     def pause(self, event = None):
         if self.player.playing: 
@@ -44,7 +46,6 @@ class MusicPlayer:
         
     def load(self):
         if self.playlist == [] : return
-        print("load()::: ", self.playlist)
         self.data_current = pyglet.media.load(self.playlist[self.current_index], streaming=True)
 
         if self.current_index < len(self.playlist) - 1 :
@@ -56,7 +57,6 @@ class MusicPlayer:
         if self.current_index == 0:
             self.data_previous = pyglet.media.load(self.playlist[-1], streaming=True)
 
-        print("load():::", cGREEN(), "success:")
 
     def next(self):
         self.stop()
@@ -91,23 +91,9 @@ class MusicPlayer:
         else:
             return 0
 
-    def open_music_file(self) -> str | None:
-        music_folder = os.path.expanduser('~/')
-        file_path = filedialog.askopenfilename(filetypes=music_formats, title="Select a Music file", initialdir=music_folder)
-        if file_path == "": return None
-        music_url = urllib.parse.urljoin("file:", urllib.request.pathname2url(os.path.abspath(file_path)))
-        music_url = urllib.parse.unquote(music_url)
-        if os.name == "nt":
-            self.add_music_list([music_url.replace("file:///", "")])
-            return music_url.replace("file:///", "")
-        elif os.name == "posix":
-            print("music_url:: ", music_url)
-            music_url = music_url.replace("file:///", "/")
-            if music_url in self.playlist:
-                return None
-            else:
-                self.add_music_list([music_url])
-                return music_url
+    def open_music_files(self) -> list | None:
+        urls = selectFiles()        
+        return urls
 
     def open_music_carpet(self):
         music_folder = os.path.expanduser('~/')

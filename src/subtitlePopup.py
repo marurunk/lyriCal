@@ -132,7 +132,14 @@ class SubtitlePopup():
     def set_txt(self, txt):
         self.label_subtitle.config(text=txt)
         if self.label_subtitle["text"] != "":
+            self.app.wm_attributes("-alpha", 1)
+            self.background_window.wm_attributes("-alpha", 1)
             self.update_geometry()       
+        else:
+            self.app.wm_attributes("-alpha", 0)
+            self.background_window.wm_attributes("-alpha", 0)
+
+
         
     def pause(self, event):
         music.reproductor.pause()
