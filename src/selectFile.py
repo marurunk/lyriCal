@@ -48,6 +48,20 @@ def selectFiles():
 
     dialog.set_select_multiple(True)
 
+    filter_music = Gtk.FileFilter()
+    filter_music.set_name("Music files")
+    filter_music.add_mime_type("audio/mp3")
+    filter_music.add_mime_type("audio/mpeg")
+    filter_music.add_mime_type("audio/wav")
+    filter_music.add_mime_type("audio/ogg")
+    filter_music.add_mime_type("audio/flac")
+    filter_music.add_mime_type("audio/x-m4a")
+    filter_music.add_mime_type("audio/x-wavpack")
+    filter_music.add_mime_type("audio/x-vorbis+ogg")
+    filter_music.add_mime_type("audio/x-opus+ogg")
+    
+    dialog.add_filter(filter_music)
+
     response = dialog.run()
     if response == Gtk.ResponseType.OK:
         archivos = dialog.get_filenames()
