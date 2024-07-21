@@ -4,6 +4,7 @@ import os
 
 patron_SRT_text = r"\d+\n\d\d:\d\d:\d\d,\d\d\d --> \d\d:\d\d:\d\d,\d\d\d\n((?:.|\n)*?)(?=\n\d+\n|$)"
 patron_SRT_times = r"(\d\d:\d\d:\d\d,\d\d\d) --> (\d\d:\d\d:\d\d,\d\d\d)"
+patron_LRC_time = r'\[(\d+):(\d+)\]'
 
 def read_lyric_file(file_URL:str) -> str:
     if os.name == "nt":
@@ -53,9 +54,19 @@ def get_LRC_lyrics(file_URL:str):
     lines = read_lyric_file(file_URL).split('\n')
     lyrics = []
     for line in lines:
+        lrc_matches = re.search(r'\[(\d+):(\d+)\]', line)
         if line.startswith('['):
-            time_str, lyric = line.split('] ')
-            seconds = timedelta(minutes=int(time_str[1:3]), seconds=int(time_str[4:6]), milliseconds=int(time_str[7:9])).total_seconds()
+            time_str, lyric = line.split(']')
+
+            if lyric.startswith(' '):
+                lyric = lyric[1:]
+
+            mins = int(lrc_matches.group(1))
+            secs = int(lrc_matches.group(2))
+
+            seconds = (mins * 60) + secs
+
+            #seconds = timedelta(minutes=int(time_str[1:3]), seconds=int(time_str[4:6]), milliseconds=int(time_str[7:9])).total_seconds()
             #CREATE LIST OF DICTS WITH KEYS "times" and "lyric" 
             lyrics.append({"time": seconds, "lyric": lyric})
     return lyrics
