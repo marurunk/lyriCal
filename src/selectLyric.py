@@ -3,8 +3,6 @@ import gi
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk
 
-
-
 def selectCarpet() -> str | None:
     dialog = Gtk.FileChooserDialog(
         title="Select a carpet",
@@ -48,23 +46,17 @@ def selectFiles():
 
     dialog.set_select_multiple(True)
 
-    filter_music = Gtk.FileFilter()
-    filter_music.set_name("Music files")
-    filter_music.add_mime_type("audio/mp3")
-    filter_music.add_mime_type("audio/mpeg")
-    filter_music.add_mime_type("audio/wav")
-    filter_music.add_mime_type("audio/ogg")
-    filter_music.add_mime_type("audio/flac")
-    filter_music.add_mime_type("audio/x-m4a")
-    filter_music.add_mime_type("audio/x-wavpack")
-    filter_music.add_mime_type("audio/x-vorbis+ogg")
-    filter_music.add_mime_type("audio/x-opus+ogg")
-    dialog.add_filter(filter_music)
+    filter_lyric= Gtk.FileFilter()
+    filter_lyric.set_name("Lyric files")
+    filter_lyric.add_pattern("*.lrc")
+    filter_lyric.add_pattern("*.srt")
+    dialog.add_filter(filter_lyric)
 
     filter_any = Gtk.FileFilter()
     filter_any.set_name("Any files")
     filter_any.add_pattern("*")
     dialog.add_filter(filter_any)
+
 
     response = dialog.run()
     if response == Gtk.ResponseType.OK:

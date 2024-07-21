@@ -9,6 +9,29 @@ from src import lyrics_reader
 from src.colors import *
 from src.subtitlePopup import SubtitlePopup
 
+import subprocess
+
+
+def get_files() -> list | None:
+
+    script_path = os.path.abspath(__file__)
+    script_path = os.path.dirname(script_path)
+    script_path = os.path.join(script_path, "selectLyric.py")
+
+    proceso = subprocess.Popen(['python3', script_path], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    stdout, stderr = proceso.communicate()
+    if proceso.returncode == 0:
+        archivos_seleccionados = stdout.decode().splitlines()
+        print("archivos seleccionados::")
+        print(archivos_seleccionados)
+
+    proceso.kill()
+    if archivos_seleccionados[0] == "None" or archivos_seleccionados == None: return None
+    else:
+        return archivos_seleccionados
+
+
+
 subtitle_formats = [("Lyric files", ("*.srt", "*.lrc"))]
 
 class LyricSystem():
@@ -35,7 +58,14 @@ class LyricSystem():
         else :
             music_folder = os.path.expanduser('~/')
         if self.playlist == []: return
-        file_path = filedialog.askopenfilename(filetypes=subtitle_formats, title="Select a Lyric file",initialdir=music_folder)
+
+        file_path = get_files()
+        if file_path == None: return
+        print("file_path es : ")
+        print(file_path)
+        file_path = file_path[0]
+        #file_path = filedialog.askopenfilename(filetypes=subtitle_formats, title="Select a Lyric file",initialdir=music_folder)
+
         if not file_path.endswith(".lrc") and not file_path.endswith(".srt") :
             print("LYRICS NONE", file_path)
             self.playlist[self.current_index] = None
