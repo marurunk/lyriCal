@@ -53,6 +53,8 @@ class LyriCal_GUI():
         self.controller = Controller(self)
         self.animation_active = False
 
+
+
         #-----------------------------APP CONFIGURE-------------------------------------#
         
         self.app.title("LyriCal - Music Player")
@@ -74,6 +76,7 @@ class LyriCal_GUI():
         self.init_widgets()
         self.configure_widgets()
         
+        self.subtitlePopup.unshow()
         #-------------------------ROUNDED BORDERS-----------------------------------#
         
         self.round_rectangle(0, 0, self.app.winfo_width(), self.app.winfo_height(), radius=RADIUS) # Creating the rounded rectangle/window

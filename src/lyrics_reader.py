@@ -54,13 +54,11 @@ def get_LRC_lyrics(file_URL:str):
     lines = read_lyric_file(file_URL).split('\n')
     lyrics = []
     for line in lines:
-        lrc_matches = re.search(r'\[(\d+):(\d+)\]', line)
-        if lrc_matches == None : 
-            lrc_matches = re.search(r'\[(\d+):(\d+).(\d+)\]', line)
-            if lrc_matches == None : 
-                print("ERROR LRC NO COMPATIBLE");
-                return
         if line.startswith('['):
+            lrc_matches = re.search(r'\[(\d+):(\d+)\]', line)
+            if lrc_matches == None: 
+                lrc_matches = re.search(r'\[(\d+):(\d+).(\d+)\]', line)
+
             time_str, lyric = line.split(']')
 
             if lyric.startswith(' '):
