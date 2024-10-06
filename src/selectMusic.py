@@ -1,2 +1,3 @@
 from gtkDialogs import *
-selectLyric()
+
+selectMusic()

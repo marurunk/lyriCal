@@ -46,6 +46,7 @@ TRANSPARENT_COLOR = "grey"
 class LyriCal_GUI():
     old_x = None
     old_y = None
+    load_thread = None
     def __init__(self) -> None:
 
         self.app = customtkinter.CTk()
@@ -124,37 +125,42 @@ class LyriCal_GUI():
         self.frame.pack(padx=10,pady=10,fill=BOTH, expand=1)
         
         self.label_program_title = customtkinter.CTkLabel(self.frame, text="LyriCal", font=PROGRAM_TITLE_FONT,
-                                               fg_color=("white",COLOR_BG))
+                                               fg_color=(COLOR_BG,"#fff"))
         
         self.box_playlist = Listbox(self.frame,font=SONG_FONT,highlightcolor=COLOR_1,selectbackground=COLOR_1,highlightthickness=0.5)
         
         
         self.bt_load = customtkinter.CTkButton(self.frame, text="Track", font=BUTTON_FONT,
-                                                fg_color=('white',COLOR_1),hover_color=COLOR_2,bg_color=COLOR_BG,
+                                                fg_color=(COLOR_1,'white'),hover_color=COLOR_2,bg_color=COLOR_BG,
                                                 border_color="black",border_width=2)
         
         self.bt_loadLyric = customtkinter.CTkButton(self.frame, text="Lyric", font=BUTTON_FONT,
-                                                fg_color=('white',COLOR_3),hover_color=COLOR_3,bg_color=COLOR_BG,
+                                                fg_color=(COLOR_3, 'white'),hover_color=COLOR_3,bg_color=COLOR_BG,
                                                 border_color="black",border_width=2)
         
         self.bt_pause = customtkinter.CTkButton(self.frame, text="Pause", font=BUTTON_FONT,
-                                                fg_color=('white',COLOR_1),hover_color=COLOR_2,bg_color=COLOR_BG,
+                                                fg_color=(COLOR_1, 'white'),hover_color=COLOR_2,bg_color=COLOR_BG,
                                                 border_color="black",border_width=2)
                                                
         self.bt_back = customtkinter.CTkButton(self.frame, text="Back", font=BUTTON_FONT,
-                                                fg_color=('white',COLOR_1),hover_color=COLOR_2,bg_color=COLOR_BG,
+                                                fg_color=(COLOR_1,'white'),hover_color=COLOR_2,bg_color=COLOR_BG,
                                                 border_color="black",border_width=2)
                                                
         self.bt_next = customtkinter.CTkButton(self.frame, text="Next", font=BUTTON_FONT,
-                                                fg_color=('white',COLOR_1),hover_color=COLOR_2,bg_color=COLOR_BG,
+                                                fg_color=(COLOR_1,'white'),hover_color=COLOR_2,bg_color=COLOR_BG,
                                                 border_color="black",border_width=2)
 
         
         self.label_song_title = customtkinter.CTkLabel(self.frame, text="", font=TITLE_FONT,
-                                               fg_color=("white",COLOR_BG), anchor="center")
+                                               fg_color=(COLOR_BG,"white"), anchor="center")
         
         self.label_song_artist = customtkinter.CTkLabel(self.frame, text="", font=ARTIST_FONT,
-                                               fg_color=("#eee",COLOR_BG), anchor="center")
+                                               fg_color=(COLOR_BG,"#eee"), anchor="center")
+
+
+        self.bt_shuffle= customtkinter.CTkButton(self.frame, text="Shuffle", font=BUTTON_FONT,
+                                                fg_color=(COLOR_BG, '#aaf'),hover_color=COLOR_2,bg_color=COLOR_BG,
+                                                border_color="black",border_width=2)
 
         #------------------------------------------------------------------------------#
         
@@ -192,6 +198,8 @@ class LyriCal_GUI():
                                                             row=5,column=1,sticky="nsew")
         self.bt_next.grid(     ipady=4,ipadx=4,pady=10,padx=2,
                                                             row=5,column=2,sticky="nsew")
+        self.bt_shuffle.grid(     ipady=4,ipadx=4,pady=10,padx=2,
+                                                            row=5,column=3,sticky="nsew")
 
     def configure_widgets(self):
         
@@ -199,17 +207,35 @@ class LyriCal_GUI():
         self.bt_loadLyric.configure(command=self.controller.load_lyric)
         
         self.box_playlist.bind("<Double-Button-1>", self.set_song)
-        #self.box_playlist.bind("<Enter>", self.set_song)
-        self.box_playlist.bind("<space>", self.set_song)
+        #enter button ID unfinded
+        #self.box_playlist.bind("<Intro>", self.set_song)
+        self.box_playlist.bind("<space>", self.controller.pause)
         
         self.bt_pause.configure(command=self.controller.pause)
         self.bt_back.configure(command=self.back_song)
         self.bt_next.configure(command=self.next_song)
-        
+        self.bt_shuffle.configure(command=self.shuffle)
+
+        # TITLE ANIMATION LABEL THREAD
         self.animation_active = True
         animation_thread = threading.Thread(target=self.title_animation)
         animation_thread.start()
+        # Song selected LABEL THREAD
+        song_animation_thread = threading.Thread(target=self.song_animation)
+        song_animation_thread.start()
+        
+        # END MUSIC TIMER THREAD
+        next_track_thread = threading.Thread(target=self.next_track_timer)
+        next_track_thread.start()
 
+    def next_track_timer(self):
+        while self.animation_active:
+            time_left =self.controller.musicPlayer.get_time_left()
+            if time_left <= 1.0 and self.controller.musicPlayer.player.playing:
+                time.sleep(2)
+                self.next_song()
+                time.sleep(1)
+            time.sleep(0.2)
 
     def on_press(self, event):
         # obtener la posición del mouse al presionar el botón izquierdo
@@ -227,12 +253,10 @@ class LyriCal_GUI():
             deltay = event.y - self.old_y
             self.app.geometry("+{}+{}".format(self.app.winfo_x() + deltax, self.app.winfo_y() + deltay))
             
-            #self.app.lift()
-            #self.app.focus_force()
  
     def load_new_song(self):
-        self.controller.load_new_song()
-        self.update_playlist()
+        self.load_thread = threading.Thread(target=self.controller.load_new_song())
+        self.load_thread.start()
     
     def update_playlist(self):
         self.box_playlist.delete(0,END)
@@ -289,6 +313,11 @@ class LyriCal_GUI():
         self.controller.set_song(index)
         self.update_select_song()
 
+    def shuffle(self):
+        self.controller.shuffle()
+        self.update_playlist()
+
+
     def next_song(self):
         self.controller.next_song()
         index = self.controller.musicPlayer.current_index
@@ -320,13 +349,14 @@ class LyriCal_GUI():
             else:
                 index = self.box_playlist.curselection()[0]
                 title : str  = self.box_playlist.get(index)
-                title : list = list(title)
-                a = title[0]
-                title.append(a)
-                title.pop(0)
-                self.box_playlist.delete(index)
-                self.box_playlist.insert(index,"".join(title))
-                self.box_playlist.select_set(index)
+                if len(title) > 26:
+                    title : list = list(title)
+                    a = title[0]
+                    title.append(a)
+                    title.pop(0)
+                    self.box_playlist.delete(index)
+                    self.box_playlist.insert(index,"".join(title))
+                    self.box_playlist.select_set(index)
             time.sleep(0.2)
 
 

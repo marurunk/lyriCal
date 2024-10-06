@@ -1,60 +1,61 @@
 from src.colors import *
 from src.lyric_system import LyricSystem
 from src.music import MusicPlayer
+from src.python_script import *
 import os
 import subprocess
+import random
 
-selecfile_path = os.path.abspath(__file__)
-selecfile_path = os.path.dirname(selecfile_path)
-selecfile_path = os.path.join(selecfile_path, "selectFile.py")
-
-def get_files(script_path) -> list | None:
-    proceso = subprocess.Popen(['python3', script_path], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    stdout, stderr = proceso.communicate()
-    if proceso.returncode == 0:
-        archivos_seleccionados = stdout.decode().splitlines()
-        print("archivos seleccionados::")
-        print(archivos_seleccionados)
-
-    proceso.kill()
-    if archivos_seleccionados[0] == "None" or archivos_seleccionados == None: return None
-    else:
-        return archivos_seleccionados
-
+def scanPlaylist(file:str):
+    parentFolder = python_script("selectFolderMusic.py")
+    if parentFolder == None: return None 
+    tracks = []
+    with open(file, 'r') as file:
+        lines = file.readlines()
+        for line in lines:
+            #if the line is not a #tag continue
+            if not line.startswith('#'): 
+                track = parentFolder[0].strip() + "/" + line.strip()
+                #if file exist add to the list
+                if os.path.exists(track): tracks.append(track)
+    return tracks
 
 
 class Controller:
+    playlist = []
     def __init__(self, GUI) -> None:
         self.GUI = GUI
         self.musicPlayer = MusicPlayer()
         self.lyricSystem = LyricSystem(self.GUI.subtitlePopup, self.musicPlayer)
-        self.playlist = []
     
     def load_new_song(self) -> None:
+        files = python_script("selectMusic.py")
+        if files == None: return
+        urls = []
 
-        # urls = self.musicPlayer.open_music_files()
-        urls = get_files(selecfile_path)
-        if urls == None: return
+        for file in files:
+            if file.endswith(".m3u"):
+                playlist = scanPlaylist(file)
+                if playlist == None: pass
+                for track in playlist:
+                    urls.append(track)
+            else:
+                urls.append(file)
+
         self.musicPlayer.add_music_list(urls)
-        for url in urls:
-            if self.lyricSystem.find_lyric(url):
-                pass
-            title = self.musicPlayer.get_title(url)
+        self.scan_lyrics()
+        self.GUI.update_playlist()
+        self.GUI.load_thread.join(10)
 
-            cRED()
-            print("the title is ::: ", title)
-            cWHITE()
-
-            li = list(title)
-            li.insert(0," ")
-            title = "".join(li)
-            self.playlist.append(title)
-
-        if not self.lyricSystem.active: self.lyricSystem.startSyncronizer()
     
+    def scan_lyrics(self):
+        self.lyricSystem.playlist = []
+        for url in self.musicPlayer.queue:
+            self.lyricSystem.find_lyric(url)
+        if not self.lyricSystem.active: self.lyricSystem.startSyncronizer()
+
     def load_lyric(self) -> None:
-        if not self.lyricSystem.active: return
-        self.lyricSystem.load_lyric()
+        if self.lyricSystem.active: self.lyricSystem.load_lyric()
     
     def next_song(self, e=None):
         self.musicPlayer.next()
@@ -81,6 +82,35 @@ class Controller:
         self.musicPlayer.play()
         pass
 
+    def shuffle(self):
+        titles=self.playlist 
+        tracks = self.musicPlayer.queue
+        lyrics = self.lyricSystem.playlist
+
+        # SAVE CURRENT TRACK BEFORE AND DELETE IT FROM THE PLAYLISTS
+        current_title = titles[self.musicPlayer.current_index]
+        current_file = tracks[self.musicPlayer.current_index]
+        current_lyric = lyrics[self.lyricSystem.current_index]
+
+        titles.pop(self.musicPlayer.current_index)
+        tracks.pop(self.musicPlayer.current_index)
+        lyrics.pop(self.lyricSystem.current_index)
+        
+        # SHUFFLE 
+        combine = list(zip(titles, tracks, lyrics))
+        random.shuffle(combine)
+
+        titles, tracks, lyrics = zip(*combine)
+
+        # COMBINE AGAIN WITH FIRST CURRENT TRACK SAVED
+        self.playlist = [current_title] + list(titles)
+        self.musicPlayer.queue = [current_file] + list(tracks)
+        self.lyricSystem.playlist = [current_lyric] + list(lyrics)
+
+        self.musicPlayer.set_index(0, False)
+        self.lyricSystem.set_index(0)
+        pass
+
     def exit(self):
         self.GUI.animation_active = False
         cBLUE()
@@ -96,6 +126,15 @@ class Controller:
         pass
     
     def get_titles_songs(self) -> list:
+        self.playlist = []
+        for music in self.musicPlayer.queue:
+            title = self.musicPlayer.get_title(music)
+
+            li = list(title)
+            li.insert(0," ")
+            title = "".join(li)
+            self.playlist.append(title)
+
         return self.playlist
     
     def set_song(self, index:int) -> None:

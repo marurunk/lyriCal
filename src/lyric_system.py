@@ -1,36 +1,16 @@
 import time
 import tkinter
 import os
+import threading
+import subprocess
 import urllib.parse
 import urllib.request
 from tkinter import filedialog
-import threading
+
 from src import lyrics_reader
 from src.colors import *
 from src.subtitlePopup import SubtitlePopup
-
-import subprocess
-
-
-def get_files() -> list | None:
-
-    script_path = os.path.abspath(__file__)
-    script_path = os.path.dirname(script_path)
-    script_path = os.path.join(script_path, "selectLyric.py")
-
-    proceso = subprocess.Popen(['python3', script_path], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    stdout, stderr = proceso.communicate()
-    if proceso.returncode == 0:
-        archivos_seleccionados = stdout.decode().splitlines()
-        print("archivos seleccionados::")
-        print(archivos_seleccionados)
-
-    proceso.kill()
-    if archivos_seleccionados[0] == "None" or archivos_seleccionados == None: return None
-    else:
-        return archivos_seleccionados
-
-
+from src.python_script import *
 
 subtitle_formats = [("Lyric files", ("*.srt", "*.lrc"))]
 
@@ -59,12 +39,9 @@ class LyricSystem():
             music_folder = os.path.expanduser('~/')
         if self.playlist == []: return
 
-        file_path = get_files()
+        file_path = python_script("selectLyric.py")
         if file_path == None: return
-        print("file_path es : ")
-        print(file_path)
         file_path = file_path[0]
-        #file_path = filedialog.askopenfilename(filetypes=subtitle_formats, title="Select a Lyric file",initialdir=music_folder)
 
         if not file_path.endswith(".lrc") and not file_path.endswith(".srt") :
             print("LYRICS NONE", file_path)
@@ -89,7 +66,6 @@ class LyricSystem():
             name , extention = os.path.splitext(file)
             if name == song_name and extention in [".lrc",".srt"]:
                 Lyric_path = carpet + "/" + file 
-                # self.current_Lyric_path = carpet + "/" + file 
                 self.add_lyric_path(Lyric_path)
                 print("Lyric finded: ",file)
                 return True
@@ -99,8 +75,6 @@ class LyricSystem():
 
     def add_lyric_path(self, URL : str | None) -> None:
         self.playlist.append(URL)
-        
-#        self.current_index = len(self.playlist)-1
         self.change_lyric()
 
     def delete_lyric_path(self, URL : str) -> None:
@@ -113,7 +87,6 @@ class LyricSystem():
         except AttributeError: pass
         
     def startSyncronizer(self) -> None:
-        self.subtitlePopup.show()
         self.main_thread = threading.Thread(target=self.sync_loop)
         self.active = True
         self.main_thread.start()
@@ -150,7 +123,6 @@ class LyricSystem():
             
     def sync_loop(self):
         print("sync loop start")
-        self.subtitlePopup.show()
         while self.active:
             if self.current_LyricObjet == None:
                 self.subtitlePopup.unshow()
@@ -158,13 +130,11 @@ class LyricSystem():
                 continue
             try:
                 if self.current_LyricObjet.format == "LRC":
-                    self.subtitlePopup.show()
                     self.LRC_syncronizer(self.current_LyricObjet)
                 elif self.current_LyricObjet.format == "SRT":
-                    self.subtitlePopup.show()
                     self.SRT_syncronizer(self.current_LyricObjet)
             except AttributeError: continue
-            time.sleep(0.2)
+            time.sleep(0.1)
         print("sync loop end")
     
     def SRT_syncronizer(self,SRT_object) -> None:

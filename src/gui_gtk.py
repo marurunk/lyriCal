@@ -2,6 +2,7 @@ import gi
 
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk
+from colors import *
 
 
 class MyWindow(Gtk.Window):
@@ -14,8 +15,10 @@ class MyWindow(Gtk.Window):
 
     def on_button_clicked(self, widget):
         print("Hello World")
-    def on_vol_clicked(self, widget, value):
-        print("value: "+value)
+    def on_vol_clicked(self):
+        cRED()
+        print("on_vol_clicked: ")
+        cWHITE()
 
 
 
