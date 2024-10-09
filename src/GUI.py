@@ -46,13 +46,21 @@ TRANSPARENT_COLOR = "grey"
 class LyriCal_GUI():
     old_x = None
     old_y = None
+
+    animation_active = False
+
+    #Threads
     load_thread = None
+    stop_track_timer = False
+    track_timer_thread = None
+    next_track_thread = None
+    lock = threading.Lock()    
+
     def __init__(self) -> None:
 
         self.app = customtkinter.CTk()
         self.subtitlePopup  = SubtitlePopup()
         self.controller = Controller(self)
-        self.animation_active = False
 
 
 
@@ -61,10 +69,11 @@ class LyriCal_GUI():
         self.app.title("LyriCal - Music Player")
         self.app.eval('tk::PlaceWindow . center') # Placing the window in the center of the screen
         self.app.title("LyricCal")
+        self.app.iconphoto(True, PhotoImage(file="src/img/icon.png"))
         self.app.geometry(f"{MIN_WIDTH}x{MIN_HEIGHT}")
         self.app.config(background='grey')
         self.app.minsize(MIN_WIDTH, MIN_HEIGHT)
-        self.app.protocol("WM_DELETE_WINDOW", self.controller.exit)
+        self.app.protocol("WM_DELETE_WINDOW", self.exit)
         if os.name == "nt":
             self.app.attributes("-transparentcolor", TRANSPARENT_COLOR)
             set_appwindow(self.app)
@@ -83,22 +92,6 @@ class LyriCal_GUI():
         self.round_rectangle(0, 0, self.app.winfo_width(), self.app.winfo_height(), radius=RADIUS) # Creating the rounded rectangle/window
         self.app.bind("<Configure>", self.draw_round_rectangle)
                 
-        #------------------------------SHORCUTS----------------------------------#
-        
-        #minus
-        self.app.bind("<k>", self.controller.pause)
-        self.app.bind("<j>", self.controller.back_song)
-        self.app.bind("<l>", self.controller.next_song)
-        
-        #mayus
-        self.app.bind("<K>", self.controller.pause)
-        self.app.bind("<J>", self.controller.back_song)
-        self.app.bind("<L>", self.controller.next_song)
-        
-        self.label_program_title.bind("<ButtonPress-1>", self.on_press)
-        self.label_program_title.bind("<ButtonRelease-1>", self.on_release)
-        self.label_program_title.bind("<B1-Motion>", self.on_motion)
-        #------------------------------------------------------------------------------#
         
         self.app.lift()
         self.app.mainloop()
@@ -206,11 +199,30 @@ class LyriCal_GUI():
         self.bt_load.configure(command=self.load_new_song)
         self.bt_loadLyric.configure(command=self.controller.load_lyric)
         
-        self.box_playlist.bind("<Double-Button-1>", self.set_song)
-        #enter button ID unfinded
-        #self.box_playlist.bind("<Intro>", self.set_song)
-        self.box_playlist.bind("<space>", self.controller.pause)
+        #------------------------------SHORCUTS----------------------------------#
         
+        self.app.bind("<KeyRelease-Return>", self.set_song)
+        self.app.bind("<KeyRelease-k>", self.controller.pause) 
+        self.app.bind("<KeyRelease-j>", self.back_song)
+        self.app.bind("<KeyRelease-l>", self.next_song)         #mayus
+        self.app.bind("<KeyRelease-K>", self.controller.pause)
+        self.app.bind("<KeyRelease-J>", self.back_song)
+        self.app.bind("<KeyRelease-L>", self.next_song)
+        self.app.bind("<KeyRelease-r>", self.toggle_loop)
+        self.app.bind("<KeyRelease-R>", self.toggle_loop)
+        self.app.bind("<KeyRelease-z>", self.toggle_random)
+        self.app.bind("<KeyRelease-Z>", self.toggle_random)
+        
+        self.label_program_title.bind("<ButtonPress-1>", self.on_press)
+        self.label_program_title.bind("<ButtonRelease-1>", self.on_release)
+        self.label_program_title.bind("<B1-Motion>", self.on_motion)
+        self.label_program_title.bind("<KeyRelease-Return>", self.set_song)
+
+        self.box_playlist.bind("<Double-Button-1>", self.set_song)
+        self.box_playlist.bind("<KeyRelease-Return>", self.set_song)
+        self.box_playlist.bind("<KeyRelease-space>", self.controller.pause)
+        
+        #------------------------------------------------------------------------------#
         self.bt_pause.configure(command=self.controller.pause)
         self.bt_back.configure(command=self.back_song)
         self.bt_next.configure(command=self.next_song)
@@ -225,78 +237,62 @@ class LyriCal_GUI():
         song_animation_thread.start()
         
         # END MUSIC TIMER THREAD
-        next_track_thread = threading.Thread(target=self.next_track_timer)
-        next_track_thread.start()
+        self.track_timer_thread = threading.Thread(target=self.init_track_timer)
+        self.track_timer_thread.start()
+
+    def init_track_timer(self):
+        print("self.track_timer_thread.start()")
+        self.next_track_thread = None
+        self.next_track_thread = threading.Thread(target=self.next_track_timer)
+        self.next_track_thread.start()
+        self.next_track_thread.join()
+        print("self.track_timer_thread.join()")
 
     def next_track_timer(self):
-        while self.animation_active:
-            time_left =self.controller.musicPlayer.get_time_left()
-            if time_left <= 1.0 and self.controller.musicPlayer.player.playing:
-                time.sleep(2)
-                self.next_song()
-                time.sleep(1)
+        while self.controller.musicPlayer.get_time_left() <= 0.0: time.sleep(0.4)
+
+        self.stop_track_timer = False
+        while not self.stop_track_timer:
             time.sleep(0.2)
+            time_left =self.controller.musicPlayer.get_time_left()
+            if time_left <= 0.0 and not self.stop_track_timer:
+                cGREEN()
+                print("timer activated")
+                cWHITE()
+                self.stop_track_timer = True
+                self.next_song()
+        print("self.next_track_thread.join()")
 
-    def on_press(self, event):
-        # obtener la posición del mouse al presionar el botón izquierdo
-        self.old_x, self.old_y = event.x, event.y
+    def reset_next_track_timer(self):
+        self.stop_track_timer = True
 
-    def on_release(self, event):
-        # resetear la posición del mouse al soltar el botón izquierdo
-        self.old_x, self.old_y = None, None
-        
+        try:
+            if self.next_track_timer_thread.is_alive():
+                self.next_track_timer_thread.join(0.3)
+                if self.next_track_timer_thread.is_alive():
+                    self.next_track_timer_thread.terminate()
+                    print("self.next_track_timer_thread.terminate()")
+        except AttributeError:
+            pass
+        try:
+            if self.track_timer_thread.is_alive():
+                self.track_timer_thread.join(0.3)
+                if self.track_timer_thread.is_alive():
+                    self.track_timer_thread.terminate()
+                    print("self.track_timer_thread.terminate()")
+        except AttributeError:
+            pass
 
-    def on_motion(self, event):
-        # mover la ventana si se está presionando el botón izquierdo del mouse
-        if self.old_x is not None and self.old_y is not None:
-            deltax = event.x - self.old_x
-            deltay = event.y - self.old_y
-            self.app.geometry("+{}+{}".format(self.app.winfo_x() + deltax, self.app.winfo_y() + deltay))
-            
- 
-    def load_new_song(self):
+        self.track_timer_thread = threading.Thread(target=self.init_track_timer)
+        self.track_timer_thread.demon = True
+        self.track_timer_thread.start()
+
+    def load_new_song(self, event = None):
         self.load_thread = threading.Thread(target=self.controller.load_new_song())
+        self.load_thread.demon = True
         self.load_thread.start()
     
-    def update_playlist(self):
-        self.box_playlist.delete(0,END)
-        for title in self.controller.get_titles_songs():
-            self.box_playlist.insert(END, title)
-        self.update_select_song()
-
-    def update_select_song(self):
-        self.box_playlist.select_clear(0,END)
-        self.box_playlist.select_set(self.controller.musicPlayer.current_index)
-        self.label_song_title.configure(text=self.controller.playlist[self.controller.musicPlayer.current_index])
-
-    def draw_round_rectangle(self, event):
-        self.canvas.delete("all")
-        self.round_rectangle(0, 0, self.app.winfo_width(), self.app.winfo_height(), radius=RADIUS) # Creating the rounded rectangle/window
-        
-    def round_rectangle(self, x1, y1, x2, y2, radius:int, **kwargs):
-        x1 +=BORDER_SIZE//2
-        x2 -=BORDER_SIZE//2
-        y1 +=BORDER_SIZE//2
-        y2 -=BORDER_SIZE//2
-        points = [x1+radius, y1,
-                x2-radius, y1,
-                x2, y1,
-                x2, y1+radius,
-                x2, y2-radius,
-                x2, y2,
-                x2-radius, y2,
-                x1+radius, y2,
-                x1, y2,
-                x1, y2-radius,
-                x1, y1+radius,
-                x1, y1]
-
-        return self.canvas.create_polygon(points, **kwargs, 
-                                          smooth=True, fill=COLOR_BG, 
-                                          outline=COLOR_OUTLINE, 
-                                          width=BORDER_SIZE)
-        
-    def move_center(self):
+    def move_center(self, event = None):
         screen_width = self.app.winfo_screenwidth()
         screen_height = self.app.winfo_screenheight()
 
@@ -308,26 +304,37 @@ class LyriCal_GUI():
 
         self.app.geometry(f"+{x_pos}+{y_pos}")
 
-    def set_song(self, event) -> None:
+    def set_song(self, event = None) -> None:
+        if self.controller.musicPlayer.queue == []: return    
+        if self.box_playlist.curselection() == [] or self.box_playlist.curselection() == None: return
+
         index = self.box_playlist.curselection()[0]
         self.controller.set_song(index)
         self.update_select_song()
+        self.reset_next_track_timer()
 
-    def shuffle(self):
+    def toggle_loop(self, event = None):
+        self.controller.toggle_loop()
+        # GUI DO SOMETHING
+
+    def toggle_random(self, event = None):
+        self.controller.toggle_random()
+        self.update_playlist()
+    
+    def shuffle(self, event = None):
         self.controller.shuffle()
         self.update_playlist()
 
-
-    def next_song(self):
+    def next_song(self, e = None):
         self.controller.next_song()
-        index = self.controller.musicPlayer.current_index
         self.update_select_song()
+        self.reset_next_track_timer()
         
-    def back_song(self):
+    def back_song(self, e = None):
         self.controller.back_song()
-        index = self.controller.musicPlayer.current_index
-        self.box_playlist.select_clear(0,END)
         self.update_select_song()
+        self.reset_next_track_timer()
+
 
     def title_animation(self):
         while self.animation_active:
@@ -359,6 +366,72 @@ class LyriCal_GUI():
                     self.box_playlist.select_set(index)
             time.sleep(0.2)
 
+    def update_playlist(self):
+        self.box_playlist.delete(0,END)
+        for title in self.controller.titles:
+            li = list(title)
+            li.insert(0," ")
+            title = "".join(li)
+            self.box_playlist.insert(END, title)
 
+        self.update_select_song()
+
+    def update_select_song(self):
+        self.box_playlist.select_clear(0,END)
+        self.box_playlist.select_set(self.controller.musicPlayer.current_index)
+        if self.controller.titles != []:
+            self.label_song_title.configure(text=self.controller.titles[self.controller.musicPlayer.current_index])
+
+    def draw_round_rectangle(self, event):
+        self.canvas.delete("all")
+        self.round_rectangle(0, 0, self.app.winfo_width(), self.app.winfo_height(), radius=RADIUS) # Creating the rounded rectangle/window
+        
+    def round_rectangle(self, x1, y1, x2, y2, radius:int, **kwargs):
+        x1 +=BORDER_SIZE//2
+        x2 -=BORDER_SIZE//2
+        y1 +=BORDER_SIZE//2
+        y2 -=BORDER_SIZE//2
+        points = [x1+radius, y1,
+                x2-radius, y1,
+                x2, y1,
+                x2, y1+radius,
+                x2, y2-radius,
+                x2, y2,
+                x2-radius, y2,
+                x1+radius, y2,
+                x1, y2,
+                x1, y2-radius,
+                x1, y1+radius,
+                x1, y1]
+
+        return self.canvas.create_polygon(points, **kwargs, 
+                                          smooth=True, fill=COLOR_BG, 
+                                          outline=COLOR_OUTLINE, 
+                                          width=BORDER_SIZE)
+        
+    def on_press(self, event):
+        # obtener la posición del mouse al presionar el botón izquierdo
+        self.old_x, self.old_y = event.x, event.y
+
+    def on_release(self, event):
+        # resetear la posición del mouse al soltar el botón izquierdo
+        self.old_x, self.old_y = None, None
+
+    def on_motion(self, event):
+        # mover la ventana si se está presionando el botón izquierdo del mouse
+        if self.old_x is not None and self.old_y is not None:
+            deltax = event.x - self.old_x
+            deltay = event.y - self.old_y
+            self.app.geometry("+{}+{}".format(self.app.winfo_x() + deltax, self.app.winfo_y() + deltay))
+ 
+    def exit(self, event = None):
+        self.animation_active = False
+        self.stop_track_timer = True
+        self.track_timer_thread.join(0.5)
+        if self.track_timer_thread.is_alive(): self.track_timer_thread.terminate()
+
+        self.controller.exit()
+
+        self.app.destroy()
 
 

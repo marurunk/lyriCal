@@ -63,8 +63,9 @@ class SubtitlePopup():
     def unshow(self):
         self.app.wm_attributes("-alpha", 0 )   
 
-    def destroy_both(self):
+    def exit(self):
         self.app.destroy()
+        print("destroy subtitle()")
     
     def on_press(self, event):
         # obtener la posición del mouse al presionar el botón izquierdo

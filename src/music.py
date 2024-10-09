@@ -16,6 +16,7 @@ music_formats = [( "Music", ( "*.mp3", "*.flac", "*.wav", "*.m4a" ))]
 subtitle_formats = [("Lyrics", ("*.srt", "*.lrc"))]
 playlist_format = [("Playlist", ("*.m3u"))]
 
+    # more about mutagen on: https://mutagen.readthedocs.io
 
 class MusicPlayer:
     player = pyglet.media.Player()
@@ -24,7 +25,7 @@ class MusicPlayer:
     current_index : int = 0
     
     is_pause = True
-    loop = True
+    loop = False
     random = False
 
     data_current : pyglet.media.Source
@@ -33,13 +34,19 @@ class MusicPlayer:
     
     def __init__(self):
         self.player.on_eos = self.on_end_song
+
+    def on_end_song(self, event=None):
+        print("on_end_song()")
+        pass
     
     def play(self):
+        if self.queue == []: return    
         self.player.queue(self.data_current)
         self.player.play()
         self.is_pause = False
 
     def pause(self, event = None):
+        if self.queue == []: return    
         if self.player.playing: 
             self.player.pause()
             self.is_pause = True
@@ -53,9 +60,10 @@ class MusicPlayer:
             self.queue.append(url)
         self.load(True,False)
         
-    def load(self, play = True, current = True):
-        if self.playlist == [] : return
-        if current: self.data_current = pyglet.media.load(self.queue[self.current_index], streaming=True)
+    def load(self, play = True, reset = True):
+        if self.queue == []: return    
+
+        if reset: self.data_current = pyglet.media.load(self.queue[self.current_index], streaming=True)
 
         if self.current_index < len(self.queue) - 1 :
             self.data_next = pyglet.media.load(self.queue[self.current_index + 1], streaming=True)
@@ -66,27 +74,43 @@ class MusicPlayer:
         if self.current_index == 0:
             self.data_previous = pyglet.media.load(self.queue[-1], streaming=True)
         
-        if current: self.player.seek(0)
+        if reset: 
+            try:
+                self.player.seek(0)
+            except:
+                pass
         if play and not self.is_pause:
             self.play()
+        print("music: load() done")
 
 
     def next(self):
+        if self.queue == []: return    
         self.stop()
+        print("music: self.stop() done")
         if self.current_index != len(self.queue) - 1:    
+            print("music: if1")
             self.player.queue(self.data_next)
+            print("music: self.player.queue(self.data_next)")
             self.current_index += 1
+            print("music: self.current_index += 1")
             self.load()
         elif self.current_index == len(self.queue) - 1 and self.loop:    
+            print("music: elif1")
             self.player.queue(self.data_next)
+            print("music: self.player.queue(self.data_next)")
             self.current_index = 0
+            print("music: self.current_index = 0")
             self.load()
         elif self.current_index == len(self.queue) - 1 and not self.loop:    
+            print("music: elif2")
             self.player.queue(self.data_next)
             self.current_index = 0
             self.load(False)
+        print("music: next() done")
                
     def back(self):
+        if self.queue == []: return    
         self.stop()
         if self.current_index > 0:    
             self.player.queue(self.data_previous)
@@ -95,9 +119,6 @@ class MusicPlayer:
             self.player.queue(self.data_previous)
             self.current_index = len(self.queue)-1
         self.load()
-
-    def on_end_song(self):
-        print("END_SONG()")
 
     def get_playback_time(self):
         if self.player.source != None:
@@ -124,31 +145,12 @@ class MusicPlayer:
             audio = WAVE(file)
         return audio.info.length
 
-        def open_music_files(self) -> list | None:
-            urls = selectFiles()        
-            return urls
-
-    def open_music_carpet(self):
-        music_folder = os.path.expanduser('~/')
-        try:
-            file_path = filedialog.askdirectory(title="Select a Music Carpet", initialdir=music_folder)
-            carpet_url = urllib.parse.urljoin("file:", urllib.request.pathname2url(os.path.abspath(file_path)))
-            carpet_url = urllib.parse.unquote(carpet_url)
-        except:
-            print("not a carpet error")
-            return None
-#        with( )
-        self.add_music_list()
-
     def stop(self):
+        if self.queue == []: return    
         self.player.pause()
         self.player.delete()
-        try:
-            self.updater_thread.terminate()
-        except AttributeError:
-            pass
         self.player = pyglet.media.Player()
-        self.is_pause = False
+        print("music player stop()")
 
     def toggle_shuffle(self):
         self.random = not self.random
@@ -175,12 +177,66 @@ class MusicPlayer:
         else:
             return "ERROR"
 
+    def get_artist(self, url:str) -> str:
+        if url.endswith(".mp3"):
+            try: return MP3(url)["TPE1"].text[0]
+            except:
+                try: return MP3(url)["TPE2"].text[0]
+                except:
+                    return "Unknown Artist"
+        elif url.endswith(".m4a"):
+            try: 
+                return M4A(url)["\xa9ART"].text[0]
+            except:
+                try:
+                    return M4A(url)["aART"].text[0]
+                except:
+                    return "Unknown Artist"
+        elif url.endswith(".flac"):
+            try:
+                return FLAC(url)["artist"][0]
+            except:
+                    return "Unknown Artist"
+        elif url.endswith(".wav"):
+            try:
+                return WavPack(url)["artist"][0]
+            except:
+                return "Unknown Artist"
+        else:
+            return "Unknown Artist"
+
+    def get_album(self, url:str) -> str:
+        if url.endswith(".mp3"):
+            try: return MP3(url)["TALB"].text[0]
+            except:
+                try: return MP3(url)["TOAL"].text[0]
+                except:
+                    return ""
+        elif url.endswith(".m4a"):
+            try:
+                return M4A(url)["\xa9alb"].text[0]
+            except:
+                return ""
+        elif url.endswith(".flac"):
+            try:
+                return FLAC(url)["album"][0]
+            except:
+                return ""
+        elif url.endswith(".wav"):
+            try:
+                return WavPack(url)["album"][0]
+            except:
+                return ""
+        else:
+            return ""
+
     def get_filename(self, url:str) -> str:
         name = os.path.basename(url)
         name, ext = os.path.splitext(name)
         return name
 
     def set_index(self, index:int, stop = True) -> None:
+        if self.queue == []: return    
         if stop: self.stop()
         self.current_index = index
         if stop: 

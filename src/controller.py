@@ -2,6 +2,7 @@ from src.colors import *
 from src.lyric_system import LyricSystem
 from src.music import MusicPlayer
 from src.python_script import *
+from src.notify import *
 import os
 import subprocess
 import random
@@ -22,7 +23,9 @@ def scanPlaylist(file:str):
 
 
 class Controller:
-    playlist = []
+    titles = []
+    artists = []
+    albums = []
     def __init__(self, GUI) -> None:
         self.GUI = GUI
         self.musicPlayer = MusicPlayer()
@@ -44,32 +47,41 @@ class Controller:
 
         self.musicPlayer.add_music_list(urls)
         self.scan_lyrics()
+        self.scan_titles()
+        self.scan_artists()
+        self.scan_albums()
         self.GUI.update_playlist()
-        self.GUI.load_thread.join(10)
-
     
     def scan_lyrics(self):
         self.lyricSystem.playlist = []
         for url in self.musicPlayer.queue:
             self.lyricSystem.find_lyric(url)
-        if not self.lyricSystem.active: self.lyricSystem.startSyncronizer()
 
     def load_lyric(self) -> None:
         if self.lyricSystem.active: self.lyricSystem.load_lyric()
     
     def next_song(self, e=None):
+        if not self.lyricSystem.active: self.lyricSystem.startSyncronizer()
         self.musicPlayer.next()
         self.lyricSystem.next()
-        pass
+        self.notify_song()
     
     def back_song(self, e=None):
+        if not self.lyricSystem.active: self.lyricSystem.startSyncronizer()
         self.musicPlayer.back()
         self.lyricSystem.back()
-        pass
+        self.notify_song()
+
+    def set_song(self, index:int) -> None:
+        if not self.lyricSystem.active: self.lyricSystem.startSyncronizer()
+        self.musicPlayer.set_index(index)
+        self.lyricSystem.set_index(index)
+        self.musicPlayer.play()
+        self.notify_song()
     
     def delete_song(self, index : int):
-        self.musicPlayer.delete_song(self.playlist[index])
-        self.lyricSystem.delete_lyric(self.playlist[index])
+        self.musicPlayer.delete_song(index)
+        self.lyricSystem.delete_lyric(index)
         pass
     
     def add_song(self):
@@ -79,11 +91,20 @@ class Controller:
         self.musicPlayer.pause()
     
     def play(self):
+        if not self.lyricSystem.active: self.lyricSystem.startSyncronizer()
         self.musicPlayer.play()
-        pass
+
+    def toggle_loop(self):
+        self.musicPlayer.loop = not self.musicPlayer.loop
+        self.lyricSystem.loop = not self.lyricSystem.loop
+
+    def toggle_random(self):
+        # work in progresss
+        self.shuffle()
 
     def shuffle(self):
-        titles=self.playlist 
+        if self.titles == []: return 
+        titles=self.titles 
         tracks = self.musicPlayer.queue
         lyrics = self.lyricSystem.playlist
 
@@ -103,7 +124,7 @@ class Controller:
         titles, tracks, lyrics = zip(*combine)
 
         # COMBINE AGAIN WITH FIRST CURRENT TRACK SAVED
-        self.playlist = [current_title] + list(titles)
+        self.titles = [current_title] + list(titles)
         self.musicPlayer.queue = [current_file] + list(tracks)
         self.lyricSystem.playlist = [current_lyric] + list(lyrics)
 
@@ -112,31 +133,41 @@ class Controller:
         pass
 
     def exit(self):
-        self.GUI.animation_active = False
         cBLUE()
-        print("PROGRAM CLOSED")
+        print("exiting..")
         cRED()
         self.lyricSystem.stopSyncronizer()
         self.musicPlayer.stop()
-        self.GUI.subtitlePopup.destroy()
-        self.GUI.app.destroy()
+        self.GUI.subtitlePopup.exit()
 
     
     def add_carpet(self):
         pass
     
-    def get_titles_songs(self) -> list:
-        self.playlist = []
+    def scan_titles(self) -> list:
+        if self.musicPlayer.queue == []: return    
+        self.titles = []
         for music in self.musicPlayer.queue:
             title = self.musicPlayer.get_title(music)
+            self.titles.append(title)
 
-            li = list(title)
-            li.insert(0," ")
-            title = "".join(li)
-            self.playlist.append(title)
+    def scan_artists(self) -> list:
+        if self.musicPlayer.queue == []: return    
+        self.artists = []
+        for music in self.musicPlayer.queue:
+            artist = self.musicPlayer.get_artist(music)
+            self.artists.append(artist)
 
-        return self.playlist
+    def scan_albums(self) -> list:
+        if self.musicPlayer.queue == []: return    
+        self.albums = []
+        for music in self.musicPlayer.queue:
+            album = self.musicPlayer.get_album(music)
+            self.albums.append(album)
     
-    def set_song(self, index:int) -> None:
-        self.musicPlayer.set_index(index)
-        self.lyricSystem.set_index(index)
+
+    def notify_song(self):
+        if self.musicPlayer.queue == []: return    
+        notify(
+                self.titles[self.musicPlayer.current_index], 
+                "by " + self.artists[self.musicPlayer.current_index])
