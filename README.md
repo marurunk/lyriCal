@@ -1,5 +1,5 @@
 ![presentation.png](/src/img/presentation.png)
-# LyriCal MusicPlayer by [@marurunk](https://github.com/marurunk)
+# LyriCal MusicPlayer
 ### A music player for karaoke
 ### Have a floating lyrics in your desktop no matter what you are doing
 
@@ -7,10 +7,12 @@
 - `K` to pause & play
 - `L` to Next
 - `J` to Back
+- `Z` to Shuffle
+- `R` to Toggle Loop
 
-### I don't have lyrics of my music:
+### Use LRCget by [tranxuanthang](https://github.com/tranxuanthang)
 ---
-LyriCal fynd the lyrics on the same music carpet, if you dont have lyrics don't worry because exist [LRCGET](https://github.com/tranxuanthang/lrcget) that automaticaly downloading the synced lyrics from lyrics servers, download directly [>here<](https://github.com/tranxuanthang/lrcget/releases/latest). Credits for [tranxuanthang](https://github.com/tranxuanthang) :)
+LyriCal fynd the lyrics on the same music carpet, if you dont have lyrics you need to use right now [LRCGET](https://github.com/tranxuanthang/lrcget), automaticaly download synced lyrics from lyrics database, download directly [> here <](https://github.com/tranxuanthang/lrcget/releases/latest).
 
 
 ## Dependencies
@@ -19,13 +21,7 @@ LyriCal fynd the lyrics on the same music carpet, if you dont have lyrics don't 
 ```
 
 ## To do list:
-- [ ] Subtitle Aspect configuration window
+- [X] Open a whole carpet function 
+- [X] Open Playlists files (.m3u)
 - [ ] Slider and time in MM:SS format
 - [ ] Lyrics Toggle function
-- [ ] Open a whole carpet function 
-- [ ] Program Database
-
-
-
-# License
-py-MusicPlayer for @marurunk is licensed under the Apache 2.0 license. You are free to use, modify, and distribute the code as long as you follow the terms of the license.
